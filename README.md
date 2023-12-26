@@ -13,9 +13,7 @@ AutoBashCraft will create a docker runtime to execute the bash commands defined 
 ## Usage
 AutoBashCraft can be easily executed with NPX to automate the creation of screencasts from bash code blocks defined in markdown files.
 
-To use AutoBashCraft, follow these steps:
-
-- Run AutoBashCraft: Execute the application using NPX with the path to your markdown file.
+Run AutoBashCraft: Execute the application using NPX with the path to your markdown file.
 
 ```bash
 npx autobashcraft@latest path/to/your/markdown-file.md
@@ -48,12 +46,17 @@ Use this tag to create a new file at the specified path. The content of the code
 ````markdown
 <!--@abc: create({"path":"newfile.sh"}) -->
 ```bash
+#!/bin/bash
+
 echo "Content for the new file"
+
 ```
 
 <!--@abc: exec() -->
 ```bash
 cat newfile.sh
+chmod +x newfile.sh
+./newfile.sh
 ```
 ````
 
