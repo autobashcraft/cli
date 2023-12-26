@@ -1,6 +1,7 @@
 import { Lexer, Token, Tokens } from "marked";
 import { Command, ParsedCommands } from "./commands";
 
+const codeblockCommands = ["exec", "create", "update"];
 export const parseMarkdown = (markdown: string): ParsedCommands => {
   const lexer = new Lexer();
   const tokens = lexer.lex(markdown);
@@ -10,12 +11,13 @@ export const parseMarkdown = (markdown: string): ParsedCommands => {
   tokens.forEach((token: Token, index: number) => {
     if (token.type === "html") {
       const execMatch = token.text.match(/<!--@abc: ([a-zA-Z]+)\((.*?)\) -->/);
+      console.log("execMatch", execMatch);
       if (execMatch && execMatch.length > 2) {
         const commandType = execMatch[1];
         const commandArgs = execMatch[2];
         currentCommandType = commandType;
 
-        if (commandType !== "exec") {
+        if (codeblockCommands.indexOf(commandType) === -1) {
           try {
             const args = JSON.parse(`${commandArgs}`);
             commands.push({ type: commandType, args });
@@ -25,15 +27,13 @@ export const parseMarkdown = (markdown: string): ParsedCommands => {
         }
       }
     } else if (token.type === "code") {
-        console.log('token',currentCommandType,  token);
-      if (currentCommandType === "exec") {
-            commands.push({ type: "exec", content: token.text });
-      } else if (["create", "update"].includes("" + currentCommandType)) {
+      console.log("token", currentCommandType, token);
+      if (codeblockCommands.includes("" + currentCommandType)) {
         const argsMatch = (tokens[index - 1] as Tokens.HTML).text.match(
           /<!--@abc: [a-zA-Z]+\((.*?)\) -->/
         );
         if (argsMatch) {
-          const args = JSON.parse(`${argsMatch[1]}`);
+          const args = argsMatch[1] ? JSON.parse(`${argsMatch[1]}`) : {};
           commands.push({
             type: "" + currentCommandType,
             content: token.text,

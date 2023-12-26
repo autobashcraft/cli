@@ -1,0 +1,16 @@
+{
+  "name": "autobashcraft",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+  },
+  "dependencies": {
+    "puppeteer": "^21.6.1",
+    "puppeteer-screen-recorder": "^2.1.2"
+  }
+}
