@@ -12,21 +12,27 @@ const userInfo = os.userInfo();
 
 // get gid property
 // from the userInfo object
-const gid = userInfo.gid;
+let gid = userInfo.gid;
 const uid = userInfo.uid;
 
 const hostRecordingPath = "/tmp/autobashcraft/recordings";
 const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 // Function to execute a sequence of commands inside a new Docker container
 export async function executeCommands(
-  parsedCommands: ParsedCommands,
+  {parsedCommands, filename, assetPath, withDocker}:{parsedCommands: ParsedCommands,
   filename: string,
-  assetPath: string
+  assetPath: string,
+  withDocker: boolean}
 ) {
   let containerId;
   try {
     // Start a new Docker container and get its ID
-    const containerStartCmd = `docker run -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:/app cioddi/autobashcraft`;
+    let dockerSockVolume = "";
+    if(withDocker){
+      dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
+      gid = '$(getent group docker | cut -d: -f3)';
+    }
+    const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:/app cioddi/autobashcraft`;
     const startResult = await execProm(containerStartCmd);
     containerId = startResult.stdout.trim();
     console.log(
@@ -36,7 +42,7 @@ export async function executeCommands(
     );
     console.log(
       await execProm(
-        `docker exec -u $(id -u):$(id -g) ${containerId} bash -c 'ls -alh /app/'`
+        `docker exec -u ${uid}:${gid} ${containerId} bash -c 'ls -alh /app/'`
       )
     );
     let castFilename = "";
@@ -50,22 +56,22 @@ export async function executeCommands(
           let commands = "#!/bin/bash\n\n";
           commands += `${command.content}\n`;
           // create the script inside the container
-          const execCommandCmd = `docker exec --user $(id -u):$(id -g) ${containerId} bash -c 'echo "${commands}" > /app/script && chmod +x /app/script && cat /app/script'`;
+          const execCommandCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'echo "${commands}" > /app/script && chmod +x /app/script && cat /app/script'`;
           console.log("script /app/script created with contents:", commands);
           const result = await execProm(execCommandCmd);
           // execute the script using a custom version of asciinema-rec_script
-          const execScriptCmd = `docker exec --user $(id -u):$(id -g) ${containerId} bash -c 'asciinema-rec_script /app/script && ls -al /app && cp /app/script.cast ${hostRecordingPath}/${castFilename}.cast && rm /app/script.cast'`;
+          const execScriptCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'asciinema-rec_script /app/script && ls -al /app && cp /app/script.cast ${hostRecordingPath}/${castFilename}.cast && rm /app/script.cast'`;
           const result2 = await execProm(execScriptCmd);
           console.log(result2.stdout);
           console.log(result2.stderr);
           console.log(
             await execProm(
-              `docker run --user $(id -u):$(id -g) --rm -v ${hostRecordingPath}:/data asciinema2/asciicast2gif -s 2 -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
+              `docker run --user ${uid}:${gid} --rm -v ${hostRecordingPath}:/data asciinema2/asciicast2gif -s 2 -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
             )
           );
           console.log(
             await execProm(
-              `docker exec --user $(id -u):$(id -g) ${containerId} bash -c 'rm ${hostRecordingPath}/${castFilename}.cast'`
+              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${hostRecordingPath}/${castFilename}.cast'`
             )
           );
           break;
@@ -83,7 +89,7 @@ export async function executeCommands(
           if (command.args.service_command) {
             // Step 1: Start the Background Process and Capture PID
             let res = await execProm(
-              `docker exec --user $(id -u):$(id -g)  ${containerId} bash -c '${command.args.service_command} & echo $!'`
+              `docker exec --user ${uid}:${gid}  ${containerId} bash -c '${command.args.service_command} & echo $!'`
             );
             pid = res.stdout.split("\n")[0].trim();
             console.log(`Server started with PID: ${pid}`, res);
@@ -102,7 +108,7 @@ export async function executeCommands(
           if (command.args.service_command) {
             // Step 3: Stop the Background Process
             await execProm(
-              `docker exec --user $(id -u):$(id -g) ${containerId} kill ${pid}`
+              `docker exec --user ${uid}:${gid} ${containerId} kill ${pid}`
             );
             console.log(`Server process ${pid} terminated`);
           }
