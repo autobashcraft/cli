@@ -4,6 +4,12 @@
 
 AutoBashCraft (ABC) is a tool designed to automate the creation of screencasts from bash code blocks embedded in markdown files. It's ideal for educators, developers, and content creators who want to visually demonstrate bash scripts or commands with ease.
 
+AutoBashCraft will create a docker runtime to execute the bash commands defined in the markdown file. This way you will not make persistent changes to your host system. The output of the bash commands will be captured and converted into a screencast. The screencast can then be embedded in the markdown file and can be viewed in any markdown viewer.
+
+## Requirements
+
+- docker
+
 ## Usage
 AutoBashCraft can be easily executed with NPX to automate the creation of screencasts from bash code blocks defined in markdown files.
 
