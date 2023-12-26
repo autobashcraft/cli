@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as fs from "fs";
 import { parseMarkdown } from "./markdownParser";
 import { executeCommands } from "./executeCommands";
