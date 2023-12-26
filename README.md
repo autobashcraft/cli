@@ -1,23 +1,5 @@
+<img alt="AutoBashCraft logo" src="./assets/logo.webp" width="200" />
 
-<!--@abc: exec() -->
-```bash
-mkdir testfile
-mkdir testfile2
-npx -y degit mapcomponents/template your-app-name
-cd your-app-name
-ls -al
-#yarn
-#yarn dev
-```
+# AutoBashCraft
 
-<!--@abc: browse({"url":"http://localhost:8080"}) -->
-
-<!--@abc: create({"path":"src/testfile.ts"}) -->
-```bash
-export const testfile = {};
-```
-
-<!--@abc: update({"path":"src/testfile.ts"}) -->
-```bash
-export const testfile = {};
-```
+AutoBashCraft (ABC) is a tool designed to automate the creation of screencasts from bash code blocks embedded in markdown files. It's ideal for educators, developers, and content creators who want to visually demonstrate bash scripts or commands with ease.
