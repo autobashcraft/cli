@@ -1,7 +1,9 @@
-name: Node.js CI
+name: Tests
 
 on:
   push:
+    paths:
+      - 'src/'
     branches: [ main ]
   pull_request:
     branches: [ main ]
