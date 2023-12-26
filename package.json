@@ -1,10 +1,10 @@
 {
-  "name": "@autobashcraft/cli",
+  "name": "autobashcraft",
   "version": "1.0.4",
   "description": "",
   "main": "dist/index.js",
   "bin": {
-    "@autobashcraft/cli": "node dist/index.js"
+    "autobashcraft": "node dist/index.js"
   },
   "scripts": {
     "build": "tsc",
