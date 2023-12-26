@@ -1,6 +1,6 @@
 {
   "name": "@autobashcraft/cli",
-  "version": "1.0.3",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "bin": {
@@ -14,8 +14,10 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "marked": "^11.1.0"
+  },
   "devDependencies": {
-    "marked": "^11.1.0",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
