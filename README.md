@@ -1,10 +1,10 @@
 <img alt="AutoBashCraft logo" src="./assets/logo.webp" width="200" />
 
+# AutoBashCraft
+
 [![npm version](https://badge.fury.io/js/autobashcraft.svg)](https://badge.fury.io/js/autobashcraft) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) ![downloads](https://img.shields.io/npm/dt/autobashcraft.svg) ![downloads](https://img.shields.io/npm/dm/autobashcraft.svg)
 
 ![Tests](https://github.com/autobashcraft/cli/actions/workflows/tests.yml/badge.svg)
-
-# AutoBashCraft
 
 AutoBashCraft (ABC) is a tool designed to automate the creation of screencasts from bash code blocks embedded in markdown files. It's ideal for educators, developers, and content creators who want to visually demonstrate bash scripts or commands with ease.
 
