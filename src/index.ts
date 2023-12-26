@@ -13,7 +13,7 @@ if (!filename) {
 }
 
 const main = async () => {
-    console.log("starting autobashcraft")
+  console.log("starting autobashcraft")
   const markdownContent = fs.readFileSync(filename, "utf8");
   const parsedCommands = parseMarkdown(markdownContent);
 
