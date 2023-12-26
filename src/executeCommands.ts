@@ -26,7 +26,7 @@ export async function executeCommands(
   let containerId;
   try {
     // Start a new Docker container and get its ID
-    const containerStartCmd = `docker run -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:/app autobashcraft/bash-runtime`;
+    const containerStartCmd = `docker run -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:/app cioddi/autobashcraft`;
     const startResult = await execProm(containerStartCmd);
     containerId = startResult.stdout.trim();
     console.log(
