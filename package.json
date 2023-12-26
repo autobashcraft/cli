@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "bin": {
-    "autobashcraft": "node dist/index.js"
+    "autobashcraft": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
