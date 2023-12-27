@@ -39,10 +39,16 @@ Finally, verify the created MBTiles tileset.
 ```bash
 ls -l sample.mbtiles
 
-sqlite3 sample.mbtiles "SELECT * FROM metadata;"
-
 ```
 
 <img src="./assets/mbtiles_3.gif" alt="drawing" width="500"/>
 
-<!--@abc: browse({"url":"http://localhost:8080/", "service_command":"docker run -d --rm -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl"}) -->
+
+<!--@abc: exec() -->
+```bash
+docker run --rm -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl
+```
+
+<!--@abc: browse({"url":"http://localhost:8080/data/sample/#9.64/-43.8816/-176.5548", "service_command":"docker run --rm -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl"}) -->
+
+<img src="./assets/mbtiles_4.gif" alt="drawing" width="500"/>

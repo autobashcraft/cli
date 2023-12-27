@@ -37,7 +37,7 @@ export async function executeCommands({
       dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
       gid = "$(getent group docker | cut -d: -f3)";
     }
-    const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft`;
+    const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft:latest`;
     const startResult = await execProm(containerStartCmd);
     containerId = startResult.stdout.trim();
     console.log(
@@ -136,7 +136,7 @@ export async function executeCommands({
             // Step 3: Stop the Background Process
             if (service_container_started) {
               await execProm(
-                `docker exec --user ${uid}:${gid} ${containerId} bash -c 'docker stop autobashcraft-service-container'`
+                `docker stop autobashcraft-service-container`
               );
               console.log(
                 `Service container "autobashcraft-service-container" terminated`

@@ -20,6 +20,7 @@ export END_RECORDING="${END_RECORDING:-"🎬 [32;3mEnd recording - [1m"}"
 export VERSION="${VERSION:-$(cat "${BASH_SOURCE[0]%/*}/../version.txt")}"
 
 
+
 build_augmented_script() { local script="$1"
   comment() {
     case $1 in
@@ -32,7 +33,28 @@ build_augmented_script() { local script="$1"
     esac
   }
 
-  execute() {
+  execute(){
+    # Function to check if Docker is accessible
+    check_docker_access() {
+        docker ps > /dev/null 2>&1
+        return $?
+    }
+    
+    # Function to get a list of currently running Docker container hashes
+    get_running_containers() {
+        docker ps -q
+    }
+
+    if check_docker_access; then
+      #echo "Docker is accessible."
+      # Get initial list of running containers
+      initial_containers=$(get_running_containers)
+      #echo "Initial list of running containers:"
+      #echo "$initial_containers"
+
+    #else
+      #echo "Docker is not accessible or not installed."
+    fi
     # A pause can be added between printing the shell prompt
     PROMPT_PAUSE=${PROMPT_PAUSE:-1}
 
@@ -103,6 +125,21 @@ build_augmented_script() { local script="$1"
         wait $cmd_pid
       ;;
     esac
+
+    if check_docker_access; then
+      # Get the final list of running containers
+      final_containers=$(get_running_containers)
+      #echo "Final list of running containers:"
+      #echo "$final_containers"
+
+      # Compare the initial and final list and stop new containers
+      for container in $final_containers; do
+          if [[ ! $initial_containers =~ $container ]]; then
+              #echo "Stopping new container: $container"
+              docker stop "$container"
+          fi
+      done
+    fi
   }
 
   begin_recording() {
