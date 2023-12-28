@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:21.5.0-bookworm
 
 RUN apt-get update && apt-get install -y \
     asciinema \
@@ -20,6 +20,6 @@ WORKDIR /tmp/autobashcraft/workspace
 
 COPY --chown=runuser:runuser scripts/* /scripts/
 RUN cd /scripts/ && npm i
-COPY ./asciinema-rec_script /usr/local/bin/asciinema-rec_script
+COPY ./scripts/asciinema-rec_script /usr/local/bin/asciinema-rec_script
 
 CMD [ "bash" ]
