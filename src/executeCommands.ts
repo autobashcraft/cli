@@ -13,17 +13,23 @@ export interface ConfigType {
     cols: number;
     rows: number;
     resolution: [number, number];
+    typingPause: number;
+    promptPause: number;
   };
+  withDocker: boolean;
 }
 
 // default config
 const defaultConfig: ConfigType = {
   asciinema: {
     speed: 2,
-    cols: 120,
-    rows: 30,
+    cols: 100,
+    rows: 20,
     resolution: [120, 30],
+    typingPause: 0.001,
+    promptPause: 1,
   },
+  withDocker: false,
 }
 let config: ConfigType = {...defaultConfig};
 
@@ -39,6 +45,24 @@ const hostRecordingPath = "/tmp/autobashcraft/recordings";
 const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 const containerWorkspacePath = hostWorkspacePath;
 
+const initializeRuntime = async () => {
+
+  let containerId;
+  let dockerSockVolume = "";
+  if (config.withDocker) {
+    dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
+    gid = "$(getent group docker | cut -d: -f3)";
+  }
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft:latest`;
+  const startResult = await execProm(containerStartCmd);
+  containerId = startResult.stdout.trim();
+
+  const cleanupWorkspace = await execProm(
+    `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
+  );
+
+  return containerId;
+}
 
 // Function to execute parsedCommands inside a new Docker container
 export async function executeCommands({
@@ -52,20 +76,9 @@ export async function executeCommands({
   assetPath: string;
   withDocker: boolean;
 }) {
-  let containerId;
+  config.withDocker = withDocker;
+  let containerId = await initializeRuntime();
   try {
-    let dockerSockVolume = "";
-    if (withDocker) {
-      dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
-      gid = "$(getent group docker | cut -d: -f3)";
-    }
-    const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft:latest`;
-    const startResult = await execProm(containerStartCmd);
-    containerId = startResult.stdout.trim();
-
-    const cleanupWorkspace = await execProm(
-      `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
-    );
     //console.log(cleanupWorkspace);
 
     let castFilename = "";
@@ -83,7 +96,7 @@ export async function executeCommands({
           console.log("script /app/script created with contents:", commands);
           const result = await execProm(execCommandCmd);
           // execute the script using a custom version of asciinema-rec_script
-          const execScriptCmd = `docker exec --user ${uid}:${gid} --privileged ${containerId} bash -c 'asciinema-rec_script ${containerWorkspacePath}/script && ls -al ${containerWorkspacePath} && cp ${containerWorkspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${containerWorkspacePath}/script.cast'`;
+          const execScriptCmd = `docker exec -t --user ${uid}:${gid} --privileged ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=0.01 asciinema-rec_script ${containerWorkspacePath}/script && ls -al ${containerWorkspacePath} && cp ${containerWorkspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${containerWorkspacePath}/script.cast'`;
           const result2 = await execProm(execScriptCmd);
           console.log(result2.stdout);
           console.log(result2.stderr);
