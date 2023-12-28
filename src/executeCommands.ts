@@ -12,11 +12,11 @@ export interface ConfigType {
     speed: number;
     cols: number;
     rows: number;
-    resolution: [number, number];
     typingPause: number;
     promptPause: number;
   };
   withDocker: boolean;
+  debug: boolean;
 }
 
 // default config
@@ -25,11 +25,11 @@ const defaultConfig: ConfigType = {
     speed: 2,
     cols: 100,
     rows: 20,
-    resolution: [120, 30],
     typingPause: 0.001,
     promptPause: 1,
   },
   withDocker: false,
+  debug: true,
 }
 let config: ConfigType = {...defaultConfig};
 

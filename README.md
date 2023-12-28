@@ -30,7 +30,7 @@ View Results: After execution, the screencasts and other outputs are stored in t
 
 In your markdown file, use the following comment syntax to define the actions for AutoBashCraft:
 
-### Exec (exec): Executes the bash commands written in the subsequent code block.
+### `exec()` executes the bash commands written in the subsequent code block
 
 This tag is used for running bash commands. The content of the code block following this tag will be executed in a bash shell.
 
@@ -43,7 +43,7 @@ echo "Hello, AutoBashCraft"
 
 <img src="examples/exec_test/assets/exec_test_0.gif" width="500" />
 
-### Create File (create): Creates a new file with the specified content.
+### `create({"path":string})` creates a new file with the specified content
 
 Use this tag to create a new file at the specified path. The content of the code block will be written to the new file.
 
@@ -66,7 +66,7 @@ chmod +x newfile.sh
 
 <img src="examples/create_test/assets/create_test_1.gif" width="500" />
 
-### Browse (browse): Opens a specified URL in a browser, ideal for demonstrating web-based applications.
+### `browse({"url":string})` opens a specified URL in a browser
 
 The `browse` command is used to open the specified URL in a web browser. This is particularly useful for demonstrating applications running on a local server or for web-based interactions.
 
@@ -75,6 +75,56 @@ The `browse` command is used to open the specified URL in a web browser. This is
 ```
 
 <img src="examples/browse_test/assets/browse_test_0.gif" width="500" />
+
+### `config(ConfigType)` changes the configuration of AutoBashCraft
+
+Use the `config` command in AutoBashCraft to customize its behavior. This command accepts a `ConfigType` object, allowing detailed configuration of various functionalities.
+
+#### Usage
+Insert a comment block in your markdown file with the `config` command and your desired settings:
+
+````markdown
+<!--@abc: config({"asciinema":{"speed":1.5, "rows": 5, "cols": 60 }}) -->
+
+<!--@abc: exec() -->
+```bash
+echo "Hello, AutoBashCraft"
+echo "Hello, AutoBashCraft"
+```
+````
+
+<img src="examples/config_test/assets/config_test_4.gif" width="500" />
+
+
+```markdown
+<!--@abc: config({
+  asciinema: {
+    speed: 2,
+    cols: 100,
+    rows: 20,
+    typingPause: 0.001,
+    promptPause: 1,
+  },
+  withDocker: false,
+  debug: true,
+}) -->
+```
+
+#### Configuration Options
+
+- asciinema: Adjust screencast recordings.
+  - speed: Playback speed.
+  - cols: Terminal columns.
+  - rows: Terminal rows.
+  - typingPause: Pause after typing.
+  - promptPause: Pause after commands.
+- withDocker: Use Docker for command execution.
+- debug: Enable debug mode with more verbose output.
+
+Once set, the configuration is persistent throughout the markdown file processing until explicitly changed.
+
+
+
 
 ## Ideas
 
