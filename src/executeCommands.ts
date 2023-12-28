@@ -30,8 +30,8 @@ const defaultConfig: ConfigType = {
   },
   withDocker: false,
   debug: true,
-}
-let config: ConfigType = {...defaultConfig};
+};
+let config: ConfigType = { ...defaultConfig };
 
 // invoke userInfo() method
 const userInfo = os.userInfo();
@@ -46,7 +46,6 @@ const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 const containerWorkspacePath = hostWorkspacePath;
 
 const initializeRuntime = async () => {
-
   let containerId;
   let dockerSockVolume = "";
   if (config.withDocker) {
@@ -62,6 +61,30 @@ const initializeRuntime = async () => {
   );
 
   return containerId;
+};
+
+async function getRunningContainers(): Promise<string[]> {
+  const { stdout } = await execProm("docker ps -q");
+  return stdout
+    .trim()
+    .split("\n")
+    .filter((line: string) => line.length > 0);
+}
+
+async function stopNewContainers(
+  initialContainers: string[]
+): Promise<string[]> {
+  const finalContainers = await getRunningContainers();
+
+  const newContainers = finalContainers.filter(
+    (container) => !initialContainers.includes(container)
+  );
+
+  for (const container of newContainers) {
+    console.log(`Stopping new container: ${container}`);
+    await execProm(`docker stop ${container}`);
+  }
+  return newContainers;
 }
 
 // Function to execute parsedCommands inside a new Docker container
@@ -80,6 +103,9 @@ export async function executeCommands({
   let containerId = await initializeRuntime();
   try {
     //console.log(cleanupWorkspace);
+
+    // get a list of running containers
+    const initialContainers = await getRunningContainers();
 
     let castFilename = "";
     let commandIndex = 0;
@@ -147,10 +173,10 @@ export async function executeCommands({
             }
           }
 
-          //castFilename = Date.now() + ".mp4";
           castFilename = filename + "_" + commandIndex + ".mp4";
+
           // Step 2: Run Headless Browser Script Inside the Container
-          const browserScript = `/scripts/puppeteer_script.js`; // This should be a script that runs Puppeteer and records the session
+          const browserScript = `/scripts/puppeteer_script.js`;
           console.log("start recording");
           console.log(
             await execProm(
@@ -180,7 +206,11 @@ export async function executeCommands({
 
           break;
         case "config":
-          config = { ...config, ...command.args, asciinema: { ...config.asciinema, ...command.args.asciinema } };
+          config = {
+            ...config,
+            ...command.args,
+            asciinema: { ...config.asciinema, ...command.args.asciinema },
+          };
           console.log("Config updated", config);
           break;
         default:
@@ -194,6 +224,9 @@ export async function executeCommands({
     await execProm(`if [ "$(ls -A ${hostRecordingPath})" ]; then
        cp -r ${hostRecordingPath}/* ${assetPath}
     fi`);
+
+    // Stop and remove any new containers that were created
+    await stopNewContainers(initialContainers);
 
     return {};
   } catch (error) {

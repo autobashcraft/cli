@@ -53,8 +53,8 @@
 - **Example Usage**: `<!--@abc: browse({"duration":5, "url":"https://google.com"}) -->`
 
 ## 9. Docker Compose Support
-- **Description**: Integrate Docker Compose to manage multi-container Docker applications.
-- **Implementation**: Allow users to define a Docker Compose file within the markdown. AutoBashCraft will use this file to orchestrate the creation of multiple containers that can interact with each other, providing a more complex and integrated environment for demonstrations.
+- **Description**: Improve Docker Compose support to demonstrate multi-container Docker applications.
+- **Implementation**: Probably achieved by installing docker compose ni the runtime container image and by solving 10.
 
 ## 10. Persist Docker Containers Throughout Markdown Processing
 - **Description**: This feature enables AutoBashCraft to maintain Docker containers across different code blocks within the same markdown file, allowing for a more seamless and integrated scripting experience. The containers initiated in one code block will remain active and accessible in subsequent code blocks. This persistence eliminates the need to repeatedly start and stop containers, thereby saving time and resources. It also allows for more complex scenarios where services need to remain active, like databases or web servers, which can be interacted with in later stages of the markdown file.
