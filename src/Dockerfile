@@ -22,5 +22,4 @@ COPY --chown=runuser:runuser scripts/* /scripts/
 RUN cd /scripts/ && npm i
 COPY ./asciinema-rec_script /usr/local/bin/asciinema-rec_script
 
-
 CMD [ "bash" ]
