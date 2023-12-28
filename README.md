@@ -76,9 +76,13 @@ The `browse` command is used to open the specified URL in a web browser. This is
 
 <img src="examples/browse_test/assets/browse_test_0.gif" width="500" />
 
+## Ideas
+
+
+
 ## Contributing
 
-We welcome contributions to AutoBashCraft. If you're interested in helping, please read our contributing guidelines.
+We welcome contributions to AutoBashCraft.
 
 ## License
 
