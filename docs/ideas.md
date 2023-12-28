@@ -30,8 +30,8 @@
 ## 5. Save Resulting Runtime as Docker Image ☐
 - **Description**: Option to save the state of the Docker container as a new Docker image after execution.
 - **Implementation**: After executing the bash commands, provide an option to commit the container state as a new Docker image, preserving the environment setup.
-- **API Proposal**: `saveDockerImage({"name": string})`: Save the state of the Docker container as a new image.
-- **Example Usage**: `<!--@abc: saveDockerImage({"name": "initialized_mc_app"}) -->`
+- **API Proposal**: `saveRuntime({"name": string})`: Save the state of the Docker container as a new image.
+- **Example Usage**: `<!--@abc: saveRuntime({"name": "initialized_mc_app"}) -->`
 
 
 ## 6. Full Puppeteer Control for the Browse Command ☐
@@ -60,3 +60,5 @@
 - **Description**: This feature enables AutoBashCraft to maintain Docker containers across different code blocks within the same markdown file, allowing for a more seamless and integrated scripting experience. The containers initiated in one code block will remain active and accessible in subsequent code blocks. This persistence eliminates the need to repeatedly start and stop containers, thereby saving time and resources. It also allows for more complex scenarios where services need to remain active, like databases or web servers, which can be interacted with in later stages of the markdown file.
 
 - **Implementation**: Implement a mechanism to maintain Docker containers across different code blocks within a single markdown file. This change would allow subsequent code blocks to interact with the same container environment, enhancing continuity and reducing the need for redundant setup steps.
+
+## 11. Clean up the mess in src/executeCommands.ts ☐

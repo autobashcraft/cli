@@ -45,6 +45,49 @@ const hostRecordingPath = "/tmp/autobashcraft/recordings";
 const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 const containerWorkspacePath = hostWorkspacePath;
 
+const cleanupRecordings = async (containerId: string) => {
+  await execProm(
+    `docker exec -u root ${containerId} bash -c 'rm -rf ${hostRecordingPath}/*'`
+  );
+};
+
+const stopContainer = async (id:string) => {
+
+  // Check if the container exists
+  const checkContainer = await execProm(
+    `docker ps -a -q -f id=^/${id}$`
+  );
+
+  if (checkContainer.stdout.trim()) {
+    // If the container exists, stop and remove it
+    console.log(
+      await execProm(
+        `docker stop ${id} && docker rm ${id}`
+      )
+    );
+  } else {
+    console.log(`Container ${id} does not exist.`);
+  }
+};
+const stopTmpContainer = async () => {
+  const containerName = "abc-tmp-container";
+
+  // Check if the container exists
+  const checkContainer = await execProm(
+    `docker ps -a -q -f name=^/${containerName}$`
+  );
+
+  if (checkContainer.stdout.trim()) {
+    // If the container exists, stop and remove it
+    console.log(
+      await execProm(
+        `docker stop ${checkContainer.stdout.trim()} || true && docker rm ${checkContainer.stdout.trim()} || true`
+      )
+    );
+  } else {
+    console.log(`Container ${containerName} does not exist.`);
+  }
+};
 const initializeRuntime = async (options: { baseImage?: string }) => {
   let baseImage = "cioddi/autobashcraft:latest";
   if (options?.baseImage) {
@@ -56,12 +99,40 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
     dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
     gid = "$(getent group docker | cut -d: -f3)";
   }
-  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} ${baseImage}}`;
+  // restore container state
+  await stopTmpContainer();
+
+  console.log(
+    await execProm(
+      `docker run --user ${uid}:${gid} --rm -dit --name abc-tmp-container -v ${hostWorkspacePath}:/tmp_workspace:rw ${baseImage}`
+    )
+  );
+
+  console.log(
+    await execProm(
+      `docker exec --user ${uid}:${gid} abc-tmp-container bash -c 'rm -rf /tmp_workspace/* && cp -r ${containerWorkspacePath}/. /tmp_workspace && ls -al /tmp_workspace'`
+    )
+  );
+
+ console.log(
+ await execProm(
+      `ls -al ${hostWorkspacePath}`
+    )
+ )
+  await stopTmpContainer();
+
+  // start the runtime container
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
+ console.log(
+ await execProm(
+      `docker exec -u root ${containerId} bash -c 'ls -al ${hostWorkspacePath}'`
+    )
+ )
 
-  const cleanupWorkspace = await execProm(
-    `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
+   await execProm(
+    `docker exec -u root ${containerId} bash -c 'chown  ${uid}:${gid} /tmp/autobashcraft -R'`
   );
   //console.log(cleanupWorkspace);
 
@@ -87,7 +158,7 @@ async function stopNewContainers(
 
   for (const container of newContainers) {
     console.log(`Stopping new container: ${container}`);
-    await execProm(`docker stop ${container}`);
+    await stopContainer(container);
   }
   return newContainers;
 }
@@ -106,6 +177,7 @@ export async function executeCommands({
 }) {
   config.withDocker = withDocker;
   let containerId = await initializeRuntime({});
+  await cleanupRecordings(containerId);
   try {
     // get a list of running containers
     const initialContainers = await getRunningContainers();
@@ -216,14 +288,56 @@ export async function executeCommands({
           };
           console.log("Config updated", config);
           break;
+        case "saveRuntime":
+          console.log(
+            "save runtime state to docker container as: ",
+            command.args.name
+          );
+          if (command.args?.name) {
+            // save docker container state as image
+            console.log(
+              await execProm(
+                `docker commit ${containerId} ${command.args.name}`
+              )
+            );
+
+            // start a new container with that image
+            await stopTmpContainer();
+            console.log(
+              await execProm(
+                `docker run --name abc-tmp-container ${command.args.name}`
+              )
+            );
+
+            console.log(
+              await execProm(
+                `docker cp ${containerWorkspacePath}/. abc-tmp-container:${containerWorkspacePath}`
+              )
+            );
+
+            // save the image again including workspace state
+            console.log(
+              await execProm(
+                `docker commit abc-tmp-container ${command.args.name}`
+              )
+            );
+            console.log(await execProm(`docker stop abc-tmp-container`));
+          } else {
+            console.log("No 'name' prop passed to the saveRuntime command");
+          }
+          break;
         case "resetRuntime":
           if (containerId) {
             await execProm(`docker stop ${containerId}`);
           }
           containerId = await initializeRuntime({
-            baseImage: command.args.image,
+            baseImage: command.args.baseImage,
           });
-          console.log("New runtime container initializes - ", command.args.image);
+
+          console.log(
+            "New runtime container initializes - ",
+            command.args.baseImage
+          );
           break;
         default:
           console.log(`Unknown command type: ${command.type}`);
