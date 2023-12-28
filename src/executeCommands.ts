@@ -45,20 +45,25 @@ const hostRecordingPath = "/tmp/autobashcraft/recordings";
 const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 const containerWorkspacePath = hostWorkspacePath;
 
-const initializeRuntime = async () => {
+const initializeRuntime = async (options: { baseImage?: string }) => {
+  let baseImage = "cioddi/autobashcraft:latest";
+  if (options?.baseImage) {
+    baseImage = options.baseImage;
+  }
   let containerId;
   let dockerSockVolume = "";
   if (config.withDocker) {
     dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
     gid = "$(getent group docker | cut -d: -f3)";
   }
-  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft:latest`;
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} ${baseImage}}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
 
   const cleanupWorkspace = await execProm(
     `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
   );
+  //console.log(cleanupWorkspace);
 
   return containerId;
 };
@@ -100,10 +105,8 @@ export async function executeCommands({
   withDocker: boolean;
 }) {
   config.withDocker = withDocker;
-  let containerId = await initializeRuntime();
+  let containerId = await initializeRuntime({});
   try {
-    //console.log(cleanupWorkspace);
-
     // get a list of running containers
     const initialContainers = await getRunningContainers();
 
@@ -213,6 +216,15 @@ export async function executeCommands({
           };
           console.log("Config updated", config);
           break;
+        case "resetRuntime":
+          if (containerId) {
+            await execProm(`docker stop ${containerId}`);
+          }
+          containerId = await initializeRuntime({
+            baseImage: command.args.image,
+          });
+          console.log("New runtime container initializes - ", command.args.image);
+          break;
         default:
           console.log(`Unknown command type: ${command.type}`);
           console.log(command);
@@ -234,9 +246,7 @@ export async function executeCommands({
     throw error;
   } finally {
     if (containerId) {
-      // Stop and remove the Docker container
-      const containerStopCmd = `docker stop ${containerId}`;
-      await execProm(containerStopCmd);
+      await execProm(`docker stop ${containerId}`);
     }
   }
 }

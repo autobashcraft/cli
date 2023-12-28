@@ -2,7 +2,7 @@ import { Lexer, Token, Tokens } from "marked";
 import { Command, ParsedCommands } from "./commands";
 
 const codeblockCommands = ["exec", "create", "update"];
-const commands = ["config", "browse"];
+const commands = ["config", "browse", "resetRuntime"];
 export const parseMarkdown = (markdown: string): ParsedCommands => {
   const lexer = new Lexer();
   const tokens = lexer.lex(markdown);
