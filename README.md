@@ -78,7 +78,7 @@ The `browse` command is used to open the specified URL in a web browser. This is
 
 ## Ideas
 
-
+[link](https://github.com/autobashcraft/cli/blob/main/docs/ideas.md)
 
 ## Contributing
 
