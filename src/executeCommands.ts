@@ -7,6 +7,26 @@ const appendFile = util.promisify(fs.appendFile);
 const execProm = util.promisify(exec);
 const os = require("os");
 
+export interface ConfigType {
+  asciinema: {
+    speed: number;
+    cols: number;
+    rows: number;
+    resolution: [number, number];
+  };
+}
+
+// default config
+const defaultConfig: ConfigType = {
+  asciinema: {
+    speed: 2,
+    cols: 120,
+    rows: 30,
+    resolution: [120, 30],
+  },
+}
+let config: ConfigType = {...defaultConfig};
+
 // invoke userInfo() method
 const userInfo = os.userInfo();
 
@@ -18,7 +38,9 @@ const uid = userInfo.uid;
 const hostRecordingPath = "/tmp/autobashcraft/recordings";
 const hostWorkspacePath = "/tmp/autobashcraft/workspace";
 const containerWorkspacePath = hostWorkspacePath;
-// Function to execute a sequence of commands inside a new Docker container
+
+
+// Function to execute parsedCommands inside a new Docker container
 export async function executeCommands({
   parsedCommands,
   filename,
@@ -40,16 +62,12 @@ export async function executeCommands({
     const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${hostWorkspacePath}:${containerWorkspacePath} cioddi/autobashcraft:latest`;
     const startResult = await execProm(containerStartCmd);
     containerId = startResult.stdout.trim();
-    console.log(
-      await execProm(
-        `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
-      )
+
+    const cleanupWorkspace = await execProm(
+      `docker exec -u root ${containerId} bash -c 'rm -rf ${containerWorkspacePath}/* && rm -rf /tmp/autobashcraft/recordings/* && chown  ${uid}:${gid} /tmp/autobashcraft -R && chmod 777 -R ${containerWorkspacePath} && ls -alh ${containerWorkspacePath}/'`
     );
-    console.log(
-      await execProm(
-        `docker exec -u ${uid}:${gid} ${containerId} bash -c 'ls -alh ${containerWorkspacePath}/'`
-      )
-    );
+    //console.log(cleanupWorkspace);
+
     let castFilename = "";
     let commandIndex = 0;
     for (const command of parsedCommands.commands) {
@@ -71,7 +89,7 @@ export async function executeCommands({
           console.log(result2.stderr);
           console.log(
             await execProm(
-              `docker run --user ${uid}:${gid} --rm -v ${hostRecordingPath}:/data asciinema2/asciicast2gif -s 2 -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
+              `docker run --user ${uid}:${gid} --rm -v ${hostRecordingPath}:/data asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
             )
           );
           console.log(
@@ -102,17 +120,17 @@ export async function executeCommands({
               );
               service_container_started = true;
             }
-            if(service_container_started){
-            let res = await execProm(
-              `docker exec --user ${uid}:${gid}  ${containerId} bash -c '${service_command}'`
-            );
-            console.log(`Service container started`);
-            }else{
-            let res = await execProm(
-              `docker exec --user ${uid}:${gid}  ${containerId} bash -c '${service_command} & echo $!'`
-            );
-            pid = res.stdout.split("\n")[0].trim();
-            console.log(`Server started with PID: ${pid}`, res);
+            if (service_container_started) {
+              let res = await execProm(
+                `docker exec --user ${uid}:${gid}  ${containerId} bash -c '${service_command}'`
+              );
+              console.log(`Service container started`);
+            } else {
+              let res = await execProm(
+                `docker exec --user ${uid}:${gid}  ${containerId} bash -c '${service_command} & echo $!'`
+              );
+              pid = res.stdout.split("\n")[0].trim();
+              console.log(`Server started with PID: ${pid}`, res);
             }
           }
 
@@ -120,7 +138,7 @@ export async function executeCommands({
           castFilename = filename + "_" + commandIndex + ".mp4";
           // Step 2: Run Headless Browser Script Inside the Container
           const browserScript = `/scripts/puppeteer_script.js`; // This should be a script that runs Puppeteer and records the session
-          console.log('start recording');
+          console.log("start recording");
           console.log(
             await execProm(
               `docker exec -u root ${containerId} bash -c 'node ${browserScript} ${
@@ -135,9 +153,7 @@ export async function executeCommands({
           if (command.args.service_command) {
             // Step 3: Stop the Background Process
             if (service_container_started) {
-              await execProm(
-                `docker stop autobashcraft-service-container`
-              );
+              await execProm(`docker stop autobashcraft-service-container`);
               console.log(
                 `Service container "autobashcraft-service-container" terminated`
               );
@@ -150,24 +166,23 @@ export async function executeCommands({
           }
 
           break;
-        // Add cases for other command types like 'browse', 'create', etc.
+        case "config":
+          config = { ...config, ...command.args, asciinema: { ...config.asciinema, ...command.args.asciinema } };
+          console.log("Config updated", config);
+          break;
         default:
           console.log(`Unknown command type: ${command.type}`);
+          console.log(command);
       }
       commandIndex++;
     }
 
-    //console.log(await execProm(`docker exec ${containerId} asciicast2gif -s 2 -t solarized-dark /tmp/recordings/output.cast /tmp/recordings/test.gif`))
-    //const execCommandCmdTest = `docker exec ${containerId} cat ${hostRecordingPath}/${castFilename}`;
-    //const resultTest = await execProm(execCommandCmdTest);
-    //console.log(resultTest)
-
-    // Optionally, handle recordings and conversions here
     await execProm(`mkdir -p ${assetPath}`);
-    await execProm(`cp -r ${hostRecordingPath}/* ${assetPath}`);
+    await execProm(`if [ "$(ls -A ${hostRecordingPath})" ]; then
+       cp -r ${hostRecordingPath}/* ${assetPath}
+    fi`);
 
-    // Return the path to the recording
-    return {}; // or converted video file
+    return {};
   } catch (error) {
     console.error("Error executing commands:", error);
     throw error;

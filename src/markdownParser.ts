@@ -2,6 +2,7 @@ import { Lexer, Token, Tokens } from "marked";
 import { Command, ParsedCommands } from "./commands";
 
 const codeblockCommands = ["exec", "create", "update"];
+const commands = ["config", "browse"];
 export const parseMarkdown = (markdown: string): ParsedCommands => {
   const lexer = new Lexer();
   const tokens = lexer.lex(markdown);
@@ -11,10 +12,10 @@ export const parseMarkdown = (markdown: string): ParsedCommands => {
   tokens.forEach((token: Token, index: number) => {
     if (token.type === "html") {
       const execMatch = token.text.match(/<!--@abc: ([a-zA-Z]+)\((.*?)\) -->/);
-      console.log("execMatch", execMatch);
+      //console.log("execMatch", execMatch);
       if (execMatch && execMatch.length > 2) {
         const commandType = execMatch[1];
-        const commandArgs = execMatch[2];
+        let commandArgs = execMatch[2];
         currentCommandType = commandType;
 
         if (codeblockCommands.indexOf(commandType) === -1) {
@@ -27,7 +28,7 @@ export const parseMarkdown = (markdown: string): ParsedCommands => {
         }
       }
     } else if (token.type === "code") {
-      console.log("token", currentCommandType, token);
+      //console.log("token", currentCommandType, token);
       if (codeblockCommands.includes("" + currentCommandType)) {
         const argsMatch = (tokens[index - 1] as Tokens.HTML).text.match(
           /<!--@abc: [a-zA-Z]+\((.*?)\) -->/
