@@ -197,7 +197,7 @@ export async function executeCommands({
           console.log("script /app/script created with contents:", commands);
           const result = await execProm(execCommandCmd);
           // execute the script using a custom version of asciinema-rec_script
-          const execScriptCmd = `docker exec -t --user ${uid}:${gid} --privileged ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=0.01 asciinema-rec_script ${containerWorkspacePath}/script && ls -al ${containerWorkspacePath} && cp ${containerWorkspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${containerWorkspacePath}/script.cast'`;
+          const execScriptCmd = `docker exec -t --user ${uid}:${gid} --privileged ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${containerWorkspacePath}/script && ls -al ${containerWorkspacePath} && cp ${containerWorkspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${containerWorkspacePath}/script.cast'`;
           const result2 = await execProm(execScriptCmd);
           console.log(result2.stdout);
           console.log(result2.stderr);
