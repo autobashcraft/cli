@@ -228,7 +228,7 @@ export async function executeCommands({
       switch (command.type) {
         case "exec":
           // create bash script with the codeblock contents in the container
-          let commands = `#!/bin/bash\n\n:cd ${getBasePath()}\n\n`;
+          let commands = `#!/bin/bash\n:cd ${getBasePath()}\n`;
           commands += `${command.content}` + "\n:sleep 4\n";
           log(
             await writeFile(
