@@ -75,7 +75,7 @@ The `browse` command is used to open the specified URL in a web browser. This is
 <!--@abc: browse({"url":"https://news.ycombinator.com/"}) -->
 ```
 
-<img src="examples/browse_test/assets/browse_test_0.gif" />
+<img src="examples/browse_test/assets/browse_test_0.gif" width="600" />
 
 ### `spawn({"command": string})` - Spawn a Background Process
 
@@ -109,7 +109,7 @@ The `yarn dev` process will not persist the execution of the bash markdown codeb
 <!--@abc: browse({"url":"http://localhost:5173"}) -->
 ```
 
-<img src="examples/mapcomponents/assets/initial_3.gif" />
+<img src="examples/mapcomponents/assets/initial_3.gif" width="600" />
 
 ### `snapshot({"name": string})` - Save Container Runtime State
 
