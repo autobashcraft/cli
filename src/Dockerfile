@@ -1,3 +1,4 @@
+#FROM node:latest
 FROM node:21.5.0-bookworm
 
 RUN apt-get update && apt-get install -y \
@@ -15,11 +16,12 @@ RUN usermod -aG docker runuser
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> \
 /etc/sudoers
 
+RUN npm install -g npm@10.2.5
 USER runuser
 WORKDIR /tmp/autobashcraft/workspace
 
 COPY --chown=runuser:runuser scripts/* /scripts/
-RUN cd /scripts/ && npm i
+RUN cd /scripts/ && PUPPETEER_SKIP_DOWNLOAD=true npm i
 COPY ./scripts/asciinema-rec_script /usr/local/bin/asciinema-rec_script
 
 CMD [ "bash" ]
