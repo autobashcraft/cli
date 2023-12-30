@@ -25,6 +25,7 @@ if (!filename) {
 const main = async () => {
   console.log("starting autobashcraft");
   const markdownContent = fs.readFileSync(filename, "utf8");
+  console.log("Parsing document " + filename);
   const parsedCommands = parseMarkdown(markdownContent);
   let path = filename.split("/");
   let filenameWithoutPath = path[path.length - 1];
