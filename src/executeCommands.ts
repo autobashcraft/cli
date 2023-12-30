@@ -20,7 +20,7 @@ export interface ConfigType {
   basePath?: string;
 }
 
-const hostRecordingPath = "/tmp/autobashcraft/recordings";
+const recordingPath = "/tmp/autobashcraft/recordings";
 const workspacePath = "/tmp/autobashcraft/workspace";
 
 // default config
@@ -58,7 +58,7 @@ const log = (_obj: any, _obj_2?: any) => {
 
 const cleanupRecordings = async (containerId: string) => {
   await execProm(
-    `docker exec -u root ${containerId} bash -c 'rm -rf ${hostRecordingPath}/*'`
+    `docker exec -u root ${containerId} bash -c 'rm -rf ${recordingPath}/*'`
   );
 };
 
@@ -129,7 +129,7 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
   await stopTmpContainer();
 
   // start the runtime container
-  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${hostRecordingPath}:${hostRecordingPath} -v ${workspacePath}:${workspacePath} ${baseImage}`;
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${recordingPath}:${recordingPath} -v ${workspacePath}:${workspacePath} ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
   log(
@@ -187,8 +187,8 @@ async function stopNewContainers(
 
 const copyRecordings = async ({ assetPath }: { assetPath: string }) => {
   await execProm(`mkdir -p ${assetPath}`);
-  await execProm(`if [ "$(ls -A ${hostRecordingPath})" ]; then
-     cp -r ${hostRecordingPath}/* ${assetPath}
+  await execProm(`if [ "$(ls -A ${recordingPath})" ]; then
+     cp -r ${recordingPath}/* ${assetPath}
   fi`);
 };
 
@@ -246,20 +246,20 @@ export async function executeCommands({
           // execute the script using a custom version of asciinema-rec_script
           castFilename = filename + "_" + commandIndex;
           const execResults = await execProm(
-            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${workspacePath}/script && ls -al ${workspacePath} && cp ${workspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${workspacePath}/script.cast'`
+            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${workspacePath}/script && ls -al ${workspacePath} && cp ${workspacePath}/script.cast ${recordingPath}/${castFilename}.cast && rm ${workspacePath}/script.cast'`
           );
           log(execResults.stdout);
           log(execResults.stderr);
           // create a gif of the recorded asciinema cast (better switch to agg)
           log(
             await execProm(
-              `docker run --user ${uid}:${gid} --rm -v ${hostRecordingPath}:/data asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
+              `docker run --user ${uid}:${gid} --rm -v ${recordingPath}:/data asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
             )
           );
           // remove the asciinema .cast file (maybe we should use it)
           log(
             await execProm(
-              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${hostRecordingPath}/${castFilename}.cast'`
+              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast'`
             )
           );
           break;
@@ -302,7 +302,7 @@ export async function executeCommands({
             await execProm(
               `docker exec -u root ${containerId} bash -c 'node ${browserScript} ${
                 command.args.url
-              } /tmp/autobashcraft/recordings/${castFilename} && chown ${uid}:${gid} /tmp/autobashcraft/recordings/${castFilename} && chmod 777 /tmp/autobashcraft/recordings/${castFilename} && ffmpeg -i /tmp/autobashcraft/recordings/${castFilename} -vf "fps=10,scale=960:540:flags=lanczos" -c:v gif -f gif /tmp/autobashcraft/recordings/${castFilename.replace(
+              } ${recordingPath}/${castFilename} && chown ${uid}:${gid} ${recordingPath}/${castFilename} && chmod 777 ${recordingPath}/${castFilename} && ffmpeg -i ${recordingPath}/${castFilename} -vf "fps=10,scale=960:540:flags=lanczos" -c:v gif -f gif ${recordingPath}/${castFilename.replace(
                 ".mp4",
                 ""
               )}.gif'`
