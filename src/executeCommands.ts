@@ -64,7 +64,7 @@ const cleanupRecordings = async (containerId: string) => {
 
 const stopContainer = async (id: string) => {
   // Check if the container exists
-  const checkContainer = await execProm(`docker ps -a -q -f id=^/${id}$`);
+  const checkContainer = await execProm(`docker ps -a -q -f id=${id}`);
 
   if (checkContainer.stdout.trim()) {
     // If the container exists, stop and remove it
@@ -289,7 +289,7 @@ export async function executeCommands({
             await execProm(
               `docker exec -u root ${containerId} bash -c 'node ${browserScript} ${
                 command.args.url
-              } /tmp/autobashcraft/recordings/${castFilename} && chown ${uid}:${gid} /tmp/autobashcraft/recordings/${castFilename} && chmod 777 /tmp/autobashcraft/recordings/${castFilename} && ffmpeg -i /tmp/autobashcraft/recordings/${castFilename} -vf "fps=10,scale=640:-1:flags=lanczos" -c:v gif -f gif /tmp/autobashcraft/recordings/${castFilename.replace(
+              } /tmp/autobashcraft/recordings/${castFilename} && chown ${uid}:${gid} /tmp/autobashcraft/recordings/${castFilename} && chmod 777 /tmp/autobashcraft/recordings/${castFilename} && ffmpeg -i /tmp/autobashcraft/recordings/${castFilename} -vf "fps=10,scale=960:540:flags=lanczos" -c:v gif -f gif /tmp/autobashcraft/recordings/${castFilename.replace(
                 ".mp4",
                 ""
               )}.gif'`
