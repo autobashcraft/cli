@@ -222,8 +222,14 @@ export async function executeCommands({
         case "exec":
           // create bash script with the codeblock contents in the container
           let commands = `#!/bin/bash\n\n:cd ${getBasePath()}\n\n`;
-          commands += `${command.content}`;
-          const execCommandCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'echo "${commands}" > ${workspacePath}/script && chmod +x ${workspacePath}/script && cat ${workspacePath}/script'`;
+          commands += `${command.content}` + "\n:sleep 4\n";
+          log(
+            await writeFile(
+              workspacePath + "/script",
+              commands
+            )
+          );
+          const execCommandCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'chmod +x ${workspacePath}/script && cat ${workspacePath}/script'`;
           log(await execProm(execCommandCmd));
           console.log(
             "script /app/script created with contents:",
