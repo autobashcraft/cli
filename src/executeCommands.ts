@@ -129,7 +129,11 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
   await stopTmpContainer();
 
   // start the runtime container
-  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${workspacePath}:${workspacePath} ${baseImage}`;
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host \
+  -dit --rm --user ${uid}:${gid} \
+  -v ${recordingPath} \
+  -v ${workspacePath}:${workspacePath} \
+  ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
   log(
@@ -270,7 +274,7 @@ export async function executeCommands({
           // create a gif of the recorded asciinema cast (better switch to agg)
           log(
             await execProm(
-              `docker run --user ${uid}:${gid} --rm -v ${recordingPath}:/data asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai /data/${castFilename}.cast /data/${castFilename}.gif`
+              `docker run --user ${uid}:${gid} --rm --volumes-from ${containerId} asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai ${recordingPath}/${castFilename}.cast ${recordingPath}/${castFilename}.gif`
             )
           );
           // remove the asciinema .cast file (maybe we should use it)
