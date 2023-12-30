@@ -13,6 +13,7 @@ AutoBashCraft will create a docker runtime to execute the bash commands defined 
 ## Requirements
 
 - docker
+- node.js
 
 ## Usage
 AutoBashCraft can be easily executed with NPX to automate the creation of screencasts from bash code blocks defined in markdown files.
@@ -32,7 +33,7 @@ In your markdown file, use the following comment syntax to define the actions fo
 
 ### `exec()` executes the bash commands written in the subsequent code block
 
-This tag is used for running bash commands. The content of the code block following this tag will be executed in a bash shell.
+This command is used for running bash commands in the terminal. The content of the code block following this tag will be executed in a bash shell.
 
 ````markdown
 <!--@abc: exec() -->
@@ -45,7 +46,7 @@ echo "Hello, AutoBashCraft"
 
 ### `create({"path":string})` creates a new file with the specified content
 
-Use this tag to create a new file at the specified path. The content of the code block will be written to the new file.
+Use this command to create a new file at the specified path. The content of the code block will be written to the new file.
 
 ````markdown
 <!--@abc: create({"path":"newfile.sh"}) -->
@@ -100,7 +101,7 @@ yarn dev
 
 <img src="examples/mapcomponents/assets/initial_0.gif" />
 
-The `yarn dev` process will not persist the execution bash codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
+The `yarn dev` process will not persist the execution of the bash markdown codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
 
 ```
 <!--@abc: config({"basePath": "my-mc-app"}) -->
@@ -112,7 +113,7 @@ The `yarn dev` process will not persist the execution bash codeblock. To use the
 
 ### `snapshot({"name": string})` - Save Container Runtime State
 
-The snapshot command allows you to save the current state of the container runtime as a docker image. This image can be later used  in the same or other markdown files to start a new runtime with the same state.
+The snapshot command allows you to save the current state of the container runtime as a docker image. This image can be later used in the same or other markdown files to start a new runtime with the same state.
 
 #### Syntax
 
@@ -139,6 +140,7 @@ Save the runtime state as "my_runtime_state_1".
 <!--@abc: snapshot({"name": "my_runtime_state_1"}) -->
 
 Overwrite the textfile.
+
 <!--@abc: exec() -->
 ```bash
 echo "Hello from runtime 2, AutoBashCraft" > testfile
@@ -153,7 +155,7 @@ Save the runtime state as "my_runtime_state_2".
 `<!--@abc: snapshot({"name": "my_runtime_state_2"}) -->`
 <!--@abc: snapshot({"name": "my_runtime_state_2"}) -->
 
- Load the runtime state "my_runtime_state_1".
+Load the runtime state "my_runtime_state_1".
 
 `<!--@abc: init({"baseImage": "my_runtime_state_1"}) -->`
 <!--@abc: init({"baseImage": "my_runtime_state_1"}) -->
@@ -172,7 +174,7 @@ Load the runtime state "my_runtime_state_2".
 `<!--@abc: init({"baseImage": "my_runtime_state_2"}) -->`
 <!--@abc: init({"baseImage": "my_runtime_state_2"}) -->
 
-`cat`` the textfile.
+`cat` the textfile.
 
 <!--@abc: exec() -->
 
