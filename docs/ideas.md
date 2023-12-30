@@ -68,11 +68,11 @@
 ## Change Runtime Docker Image ☑
 - **Description**: Provide an option to select different Docker images as the runtime environment.
 - **Implementation**: Allow users to specify a Docker image in the configuration file. The tool will then pull and use this image to execute bash commands.
-- **API Proposal**: `resetRuntime(imageName)`: Specify a Docker image to use.
-- **Example Usage**: `<!--@abc: resetRuntime({"baseImage": "ubuntu:latest"}) -->`
+- **API Proposal**: `init(imageName)`: Specify a Docker image to use.
+- **Example Usage**: `<!--@abc: init({"baseImage": "ubuntu:latest"}) -->`
 
 ## Save Current Runtime as Docker Image ☑
 - **Description**: Option to save the state of the Docker container as a new Docker image after execution.
 - **Implementation**: After executing the bash commands, provide an option to commit the container state as a new Docker image, preserving the environment setup.
-- **API Proposal**: `saveRuntime({"name": string})`: Save the state of the Docker container as a new image.
-- **Example Usage**: `<!--@abc: saveRuntime({"name": "initialized_mc_app"}) -->`
+- **API Proposal**: `snapshot({"name": string})`: Save the state of the Docker container as a new image.
+- **Example Usage**: `<!--@abc: snapshot({"name": "initialized_mc_app"}) -->`

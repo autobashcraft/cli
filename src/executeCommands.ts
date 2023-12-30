@@ -305,7 +305,7 @@ export async function executeCommands({
           };
           console.log("Config updated", config);
           break;
-        case "saveRuntime":
+        case "snapshot":
           await stopBackgroundProcesses({ containerId });
           console.log(
             "save runtime state to docker container as: ",
@@ -343,10 +343,10 @@ export async function executeCommands({
             // stop tmp container
             log(await execProm(`docker stop abc-tmp-container`));
           } else {
-            console.log("No 'name' prop passed to the saveRuntime command");
+            console.log("No 'name' prop passed to the snapshot command");
           }
           break;
-        case "resetRuntime":
+        case "init":
           if (containerId) {
             await execProm(`docker stop ${containerId}`);
           }

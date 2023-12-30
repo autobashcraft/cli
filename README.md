@@ -76,6 +76,120 @@ The `browse` command is used to open the specified URL in a web browser. This is
 
 <img src="examples/browse_test/assets/browse_test_0.gif" width="500" />
 
+### `spawn({"command": string})` - Spawn a Background Process
+
+Use the `spawn` command to start a background process inside the container runtime. This is useful for running commands that should continue executing in the background.
+
+#### Syntax
+
+```markdown
+<!--@abc: spawn({"command": "your_background_command"}) -->
+```
+
+#### Example
+
+````
+<!--@abc: exec() -->
+```bash
+npx --yes degit mapcomponents/template my-mc-app
+cd my-mc-app
+yarn
+yarn dev
+```
+````
+
+<img src="examples/mapcomponents/assets/initial_0.gif" width="500" />
+
+The `yarn dev` process will not persist the execution bash codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
+
+```
+<!--@abc: config({"basePath": "my-mc-app"}) -->
+<!--@abc: spawn({"command": "yarn dev"}) -->
+<!--@abc: browse({"url":"http://localhost:5173"}) -->
+```
+
+<img src="examples/mapcomponents/assets/initial_3.gif" width="500" />
+
+### `snapshot({"name": string})` - Save Container Runtime State
+
+The snapshot command allows you to save the current state of the container runtime as a docker image. This image can be later used  in the same or other markdown files to start a new runtime with the same state.
+
+#### Syntax
+
+```markdown
+<!--@abc: snapshot({"name": "your_image_name"}) -->
+```
+
+#### Example
+
+Create a textfile in the initial runtime.
+
+<!--@abc: exec() -->
+```bash
+echo "Hello from runtime 1, AutoBashCraft" > testfile
+cat testfile
+```
+
+<img src="examples/save_test/assets/save_test_0.gif" width="500"/>
+
+
+Save the runtime state as "my_runtime_state_1".
+
+`<!--@abc: snapshot({"name": "my_runtime_state_1"}) -->`
+<!--@abc: snapshot({"name": "my_runtime_state_1"}) -->
+
+Overwrite the textfile.
+<!--@abc: exec() -->
+```bash
+echo "Hello from runtime 2, AutoBashCraft" > testfile
+cat testfile
+```
+
+<img src="examples/save_test/assets/save_test_2.gif" width="500"/>
+
+
+Save the runtime state as "my_runtime_state_2".
+
+`<!--@abc: snapshot({"name": "my_runtime_state_2"}) -->`
+<!--@abc: snapshot({"name": "my_runtime_state_2"}) -->
+
+ Load the runtime state "my_runtime_state_1".
+
+`<!--@abc: init({"baseImage": "my_runtime_state_1"}) -->`
+<!--@abc: init({"baseImage": "my_runtime_state_1"}) -->
+
+`cat` the textfile
+
+<!--@abc: exec() -->
+```bash
+cat testfile
+```
+
+<img src="examples/save_test/assets/save_test_5.gif" width="500"/>
+
+Load the runtime state "my_runtime_state_2".
+
+`<!--@abc: init({"baseImage": "my_runtime_state_2"}) -->`
+<!--@abc: init({"baseImage": "my_runtime_state_2"}) -->
+
+`cat`` the textfile.
+
+<!--@abc: exec() -->
+
+```bash
+cat testfile
+```
+
+<img src="examples/save_test/assets/save_test_7.gif" width="500"/>
+
+### `init({"baseImage": string})` - Initialize a New Container Runtime
+
+Use the init command to stop the current container runtime and initialize a new runtime using the specified or default base image. Note that containers started using a bash script will not be affected, but background processes started using spawn will have to be restarted, as init will stop and remove the current container runtime and start a new one.
+
+#### Examples
+
+See the **snapshot** example above.
+
 ### `config(ConfigType)` changes the configuration of AutoBashCraft
 
 Use the `config` command in AutoBashCraft to customize its behavior. This command accepts a `ConfigType` object, allowing detailed configuration of various functionalities.
@@ -107,19 +221,21 @@ echo "Hello, AutoBashCraft"
   },
   withDocker: false,
   debug: true,
+  basePath: "your_custom_path",
 }) -->
 ```
 
 #### Configuration Options
 
-- asciinema: Adjust screencast recordings.
-  - speed: Playback speed.
-  - cols: Terminal columns.
-  - rows: Terminal rows.
-  - typingPause: Pause after typing.
-  - promptPause: Pause after commands.
-- withDocker: Use Docker for command execution.
-- debug: Enable debug mode with more verbose output.
+- **asciinema**: Adjust screencast recordings.
+  - **speed**: Playback speed.
+  - **cols**: Terminal columns.
+  - **rows**: Terminal rows.
+  - **typingPause**: Pause after typing.
+  - **promptPause**: Pause after commands.
+- **withDocker**: Use Docker for command execution.
+- **debug**: Enable debug mode with more verbose output.
+- **basePath**: Specify a custom base path for the workspace. only relative paths without any leading "/" or "./" might work.
 
 Once set, the configuration is persistent throughout the markdown file processing until explicitly changed.
 
