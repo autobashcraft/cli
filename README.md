@@ -182,7 +182,7 @@ Load the runtime state "my_runtime_state_2".
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_7.gif"/>
+<img src="examples/save_test/assets/save_test_8.gif"/>
 
 ### `init({"baseImage": string})` - Initialize a New Container Runtime
 
