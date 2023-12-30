@@ -26,7 +26,7 @@ const workspacePath = "/tmp/autobashcraft/workspace";
 // default config
 const defaultConfig: ConfigType = {
   asciinema: {
-    speed: 2,
+    speed: 1,
     cols: 80,
     rows: 15,
     typingPause: 0.01,
@@ -394,5 +394,11 @@ export async function executeCommands({
     if (containerId) {
       await execProm(`docker stop ${containerId}`);
     }
+
+    console.log("");
+    console.log("============");
+    console.log("=== done ===");
+    console.log("============");
+    console.log("");
   }
 }
