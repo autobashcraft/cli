@@ -38,4 +38,7 @@ const outputDir = args[1];
 
 recordPage(url, outputDir)
     .then(() => console.log('Recording completed'))
-    .catch(err => console.error('Recording failed:', err));
+    .catch(err => {
+        console.error('Recording failed:', err);
+        process.exit()
+    });
