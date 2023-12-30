@@ -92,6 +92,13 @@ const stopTmpContainer = async () => {
     log(`Container ${containerName} does not exist.`);
   }
 };
+
+const getPrivilegedOption = () => {
+  if (config.withDocker) {
+    return "--privileged";
+  }
+  return "";
+}
 const initializeRuntime = async (options: { baseImage?: string }) => {
   let baseImage = "cioddi/autobashcraft:latest";
   if (options?.baseImage) {
@@ -239,7 +246,7 @@ export async function executeCommands({
           // execute the script using a custom version of asciinema-rec_script
           castFilename = filename + "_" + commandIndex;
           const execResults = await execProm(
-            `docker exec -t --user ${uid}:${gid} --privileged ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${workspacePath}/script && ls -al ${workspacePath} && cp ${workspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${workspacePath}/script.cast'`
+            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${workspacePath}/script && ls -al ${workspacePath} && cp ${workspacePath}/script.cast ${hostRecordingPath}/${castFilename}.cast && rm ${workspacePath}/script.cast'`
           );
           log(execResults.stdout);
           log(execResults.stderr);
@@ -308,6 +315,7 @@ export async function executeCommands({
             ...config,
             ...command.args,
             asciinema: { ...config.asciinema, ...command.args.asciinema },
+            withDocker: config.withDocker, // prevent overwriting withDocker using config command
           };
           console.log("Config updated", config);
           break;
