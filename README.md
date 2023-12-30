@@ -42,7 +42,7 @@ echo "Hello, AutoBashCraft"
 ```
 ````
 
-<img src="examples/exec_test/assets/exec_test_0.gif" />
+<img src="examples/exec_test/assets/exec_test_1.gif" />
 
 ### `create({"path":string})` creates a new file with the specified content
 
@@ -65,7 +65,7 @@ chmod +x newfile.sh
 ```
 ````
 
-<img src="examples/create_test/assets/create_test_1.gif" />
+<img src="examples/create_test/assets/create_test_2.gif" />
 
 ### `browse({"url":string})` opens a specified URL in a browser
 
@@ -99,7 +99,7 @@ yarn dev
 ```
 ````
 
-<img src="examples/mapcomponents/assets/initial_1.gif" />
+<img src="examples/mapcomponents/assets/initial_0.gif" />
 
 The `yarn dev` process will not persist the execution of the bash markdown codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
 
@@ -109,7 +109,7 @@ The `yarn dev` process will not persist the execution of the bash markdown codeb
 <!--@abc: browse({"url":"http://localhost:5173"}) -->
 ```
 
-<img src="examples/mapcomponents/assets/initial_4.gif" width="600" />
+<img src="examples/mapcomponents/assets/initial_3.gif" width="600" />
 
 ### `snapshot({"name": string})` - Save Container Runtime State
 

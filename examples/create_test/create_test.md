@@ -1,3 +1,5 @@
+<!--@abc: config({"asciinema":{"rows": 8, "cols": 60 }}) -->
+
 <!--@abc: create({"path":"newfile.sh"}) -->
 ```bash
 #!/bin/bash
