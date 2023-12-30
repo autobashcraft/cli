@@ -6,7 +6,7 @@ echo "Hello from runtime 1, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_0.gif" width="500"/>
+<img src="./assets/save_test_0.gif"/>
 
 
 ## Save the runtime state as "my_runtime_state_1"
@@ -20,7 +20,7 @@ echo "Hello from runtime 2, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_2.gif" width="500"/>
+<img src="./assets/save_test_2.gif"/>
 
 
 ## Save the runtime state as "my_runtime_state_2"
@@ -37,7 +37,7 @@ cat testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_5.gif" width="500"/>
+<img src="./assets/save_test_5.gif"/>
 
 ## Load the runtime state "my_runtime_state_2"
 `<!--@abc: init({"baseImage": "my_runtime_state_2"}) -->`
@@ -49,4 +49,4 @@ cat testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_7.gif" width="500"/>
+<img src="./assets/save_test_7.gif"/>

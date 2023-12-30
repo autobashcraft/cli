@@ -41,7 +41,7 @@ echo "Hello, AutoBashCraft"
 ```
 ````
 
-<img src="examples/exec_test/assets/exec_test_0.gif" width="500" />
+<img src="examples/exec_test/assets/exec_test_0.gif" />
 
 ### `create({"path":string})` creates a new file with the specified content
 
@@ -64,7 +64,7 @@ chmod +x newfile.sh
 ```
 ````
 
-<img src="examples/create_test/assets/create_test_1.gif" width="500" />
+<img src="examples/create_test/assets/create_test_1.gif" />
 
 ### `browse({"url":string})` opens a specified URL in a browser
 
@@ -74,7 +74,7 @@ The `browse` command is used to open the specified URL in a web browser. This is
 <!--@abc: browse({"url":"https://news.ycombinator.com/"}) -->
 ```
 
-<img src="examples/browse_test/assets/browse_test_0.gif" width="500" />
+<img src="examples/browse_test/assets/browse_test_0.gif" />
 
 ### `spawn({"command": string})` - Spawn a Background Process
 
@@ -98,7 +98,7 @@ yarn dev
 ```
 ````
 
-<img src="examples/mapcomponents/assets/initial_0.gif" width="500" />
+<img src="examples/mapcomponents/assets/initial_0.gif" />
 
 The `yarn dev` process will not persist the execution bash codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
 
@@ -108,7 +108,7 @@ The `yarn dev` process will not persist the execution bash codeblock. To use the
 <!--@abc: browse({"url":"http://localhost:5173"}) -->
 ```
 
-<img src="examples/mapcomponents/assets/initial_3.gif" width="500" />
+<img src="examples/mapcomponents/assets/initial_3.gif" />
 
 ### `snapshot({"name": string})` - Save Container Runtime State
 
@@ -130,7 +130,7 @@ echo "Hello from runtime 1, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_0.gif" width="500"/>
+<img src="examples/save_test/assets/save_test_0.gif"/>
 
 
 Save the runtime state as "my_runtime_state_1".
@@ -145,7 +145,7 @@ echo "Hello from runtime 2, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_2.gif" width="500"/>
+<img src="examples/save_test/assets/save_test_2.gif"/>
 
 
 Save the runtime state as "my_runtime_state_2".
@@ -165,7 +165,7 @@ Save the runtime state as "my_runtime_state_2".
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_5.gif" width="500"/>
+<img src="examples/save_test/assets/save_test_5.gif"/>
 
 Load the runtime state "my_runtime_state_2".
 
@@ -180,7 +180,7 @@ Load the runtime state "my_runtime_state_2".
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_7.gif" width="500"/>
+<img src="examples/save_test/assets/save_test_7.gif"/>
 
 ### `init({"baseImage": string})` - Initialize a New Container Runtime
 
@@ -207,7 +207,7 @@ echo "Hello, AutoBashCraft"
 ```
 ````
 
-<img src="examples/config_test/assets/config_test_4.gif" width="500" />
+<img src="examples/config_test/assets/config_test_4.gif" />
 
 
 ```markdown

@@ -13,4 +13,4 @@ chmod +x newfile.sh
 ./newfile.sh
 ```
 
-<img src="assets/create_test_1.gif" width="500" />
+<img src="assets/create_test_1.gif" />

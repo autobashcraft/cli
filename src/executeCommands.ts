@@ -27,9 +27,9 @@ const workspacePath = "/tmp/autobashcraft/workspace";
 const defaultConfig: ConfigType = {
   asciinema: {
     speed: 2,
-    cols: 100,
-    rows: 20,
-    typingPause: 0.001,
+    cols: 80,
+    rows: 15,
+    typingPause: 0.01,
     promptPause: 1,
   },
   withDocker: false,

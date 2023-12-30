@@ -11,7 +11,7 @@ First, prepare the GeoJSON file, for this example we are going to download it us
 curl -o sample.geojson https://raw.githubusercontent.com/georgique/world-geojson/develop/areas/new_zealand/chatham_island.json
 ``` 
 
-<img src="./assets/mbtiles_0.gif" width="500"/>
+<img src="./assets/mbtiles_0.gif"/>
 
 Convert GeoJSON to MBTiles
 Next, convert the GeoJSON file to an MBTiles tileset.
@@ -28,7 +28,7 @@ cd ..
 tippecanoe -o sample.mbtiles sample.geojson
 ```
 
-<img src="./assets/mbtiles_1.gif" width="500"/>
+<img src="./assets/mbtiles_1.gif"/>
 
 # Convert the GeoJSON to MBTiles
 tippecanoe -o sample.mbtiles sample.geojson
@@ -41,7 +41,7 @@ ls -l sample.mbtiles
 
 ```
 
-<img src="./assets/mbtiles_3.gif" width="500"/>
+<img src="./assets/mbtiles_3.gif"/>
 
 
 <!--@abc: exec() -->
@@ -51,4 +51,4 @@ docker run --rm -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl
 
 <!--@abc: browse({"url":"http://localhost:8080/data/sample/#9.64/-43.8816/-176.5548", "service_command":"docker run --rm -v $(pwd):/data -p 8080:8080 maptiler/tileserver-gl"}) -->
 
-<img src="./assets/mbtiles_4.gif" width="500"/>
+<img src="./assets/mbtiles_4.gif"/>
