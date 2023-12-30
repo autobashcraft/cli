@@ -99,7 +99,7 @@ yarn dev
 ```
 ````
 
-<img src="examples/mapcomponents/assets/initial_0.gif" />
+<img src="examples/mapcomponents/assets/initial_1.gif" />
 
 The `yarn dev` process will not persist the execution of the bash markdown codeblock. To use the dev server later we need to spawn it as a background process using the `spawn` command.
 
@@ -109,7 +109,7 @@ The `yarn dev` process will not persist the execution of the bash markdown codeb
 <!--@abc: browse({"url":"http://localhost:5173"}) -->
 ```
 
-<img src="examples/mapcomponents/assets/initial_3.gif" width="600" />
+<img src="examples/mapcomponents/assets/initial_4.gif" width="600" />
 
 ### `snapshot({"name": string})` - Save Container Runtime State
 
@@ -131,7 +131,7 @@ echo "Hello from runtime 1, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_0.gif"/>
+<img src="examples/save_test/assets/save_test_1.gif"/>
 
 
 Save the runtime state as "my_runtime_state_1".
@@ -147,7 +147,7 @@ echo "Hello from runtime 2, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_2.gif"/>
+<img src="examples/save_test/assets/save_test_3.gif"/>
 
 
 Save the runtime state as "my_runtime_state_2".
@@ -167,7 +167,7 @@ Load the runtime state "my_runtime_state_1".
 cat testfile
 ```
 
-<img src="examples/save_test/assets/save_test_5.gif"/>
+<img src="examples/save_test/assets/save_test_6.gif"/>
 
 Load the runtime state "my_runtime_state_2".
 

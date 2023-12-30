@@ -1,12 +1,14 @@
 ## Create a textfile
 
+<!--@abc: config({"asciinema":{"rows": 4, "cols": 60 }}) -->
+
 <!--@abc: exec() -->
 ```bash
 echo "Hello from runtime 1, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_0.gif"/>
+<img src="./assets/save_test_1.gif"/>
 
 
 ## Save the runtime state as "my_runtime_state_1"
@@ -20,7 +22,7 @@ echo "Hello from runtime 2, AutoBashCraft" > testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_2.gif"/>
+<img src="./assets/save_test_3.gif"/>
 
 
 ## Save the runtime state as "my_runtime_state_2"
@@ -37,7 +39,7 @@ cat testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_5.gif"/>
+<img src="./assets/save_test_6.gif"/>
 
 ## Load the runtime state "my_runtime_state_2"
 `<!--@abc: init({"baseImage": "my_runtime_state_2"}) -->`
@@ -49,4 +51,4 @@ cat testfile
 cat testfile
 ```
 
-<img src="./assets/save_test_7.gif"/>
+<img src="./assets/save_test_8.gif"/>
