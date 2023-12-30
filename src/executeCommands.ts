@@ -129,7 +129,7 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
   await stopTmpContainer();
 
   // start the runtime container
-  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${recordingPath}:${recordingPath} -v ${workspacePath}:${workspacePath} ${baseImage}`;
+  const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host -dit --rm --user ${uid}:${gid} -v ${workspacePath}:${workspacePath} ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
   log(
@@ -185,11 +185,21 @@ async function stopNewContainers(
   return newContainers;
 }
 
-const copyRecordings = async ({ assetPath }: { assetPath: string }) => {
+const copyRecordings = async ({ assetPath, containerId }: { assetPath: string; containerId: string; }) => {
   await execProm(`mkdir -p ${assetPath}`);
-  await execProm(`if [ "$(ls -A ${recordingPath})" ]; then
-     cp -r ${recordingPath}/* ${assetPath}
-  fi`);
+  await execProm(`docker exec ${containerId} test -n "$(ls -A ${recordingPath})" && echo "Not empty" || echo "Empty"`)
+  .then(async (result:any) => {
+    const output = result.stdout.trim();
+    if (output === 'Not empty') {
+      // Use docker cp to copy files from recordingPath to assetPath
+      await execProm(`docker cp ${containerId}:${recordingPath}/. ${assetPath}`);
+    } else {
+      console.log('Recording path is empty.');
+    }
+  })
+  .catch((error:any) => {
+    console.error('Error checking directory:', error.message);
+  });
 };
 
 const getBasePath = () => {
@@ -246,7 +256,14 @@ export async function executeCommands({
           // execute the script using a custom version of asciinema-rec_script
           castFilename = filename + "_" + commandIndex;
           const execResults = await execProm(
-            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c 'stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} && TYPING_PAUSE=${config.asciinema.typingPause} && PROMPT_PAUSE=${config.asciinema.promptPause} && asciinema-rec_script ${workspacePath}/script && ls -al ${workspacePath} && cp ${workspacePath}/script.cast ${recordingPath}/${castFilename}.cast && rm ${workspacePath}/script.cast'`
+            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c '\
+            stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} &&\
+            TYPING_PAUSE=${config.asciinema.typingPause} \
+            PROMPT_PAUSE=${config.asciinema.promptPause} \
+            asciinema-rec_script ${workspacePath}/script &&\
+            ls -al ${workspacePath} &&\
+            cp ${workspacePath}/script.cast ${recordingPath}/${castFilename}.cast &&\
+            rm ${workspacePath}/script.cast'`
           );
           log(execResults.stdout);
           log(execResults.stderr);
@@ -300,12 +317,13 @@ export async function executeCommands({
           // create browser recording using the script referenced by browserScript.js
           log(
             await execProm(
-              `docker exec -u root ${containerId} bash -c 'node ${browserScript} ${
-                command.args.url
-              } ${recordingPath}/${castFilename} && chown ${uid}:${gid} ${recordingPath}/${castFilename} && chmod 777 ${recordingPath}/${castFilename} && ffmpeg -i ${recordingPath}/${castFilename} -vf "fps=10,scale=960:540:flags=lanczos" -c:v gif -f gif ${recordingPath}/${castFilename.replace(
-                ".mp4",
-                ""
-              )}.gif'`
+              `docker exec -u root ${containerId} bash -c '\
+              node ${browserScript} ${ command.args.url } ${recordingPath}/${castFilename} &&\
+              chown ${uid}:${gid} ${recordingPath}/${castFilename} &&\
+              chmod 666 ${recordingPath}/${castFilename} &&\
+              ffmpeg -i ${recordingPath}/${castFilename} \
+              -vf "fps=10,scale=960:540:flags=lanczos" \
+              -c:v gif -f gif ${recordingPath}/${castFilename.replace( ".mp4", "")}.gif'`
             )
           );
 
@@ -379,7 +397,7 @@ export async function executeCommands({
           log(command);
       }
       commandIndex++;
-      await copyRecordings({ assetPath });
+      await copyRecordings({ assetPath, containerId });
     }
 
     // Stop and remove any new containers that were created
