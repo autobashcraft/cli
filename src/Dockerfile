@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     asciinema \
     python3-pip \
     ffmpeg \
-    libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 docker.io sudo 
+    libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 docker.io docker-compose sudo 
 
 RUN npm install --global puppeteer puppeteer-screen-recorder
 
