@@ -16,7 +16,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "marked": "^11.1.0"
+    "marked": "^11.1.0",
+    "yarg": "^1.0.8"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

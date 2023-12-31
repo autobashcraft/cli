@@ -2,6 +2,7 @@
 
 import * as fs from "fs";
 import * as readline from "readline";
+import yargs from "yargs";
 import { parseMarkdown } from "./markdownParser";
 import { executeCommands } from "./executeCommands";
 import { Command, ParsedCommands } from "./commands";
@@ -13,9 +14,18 @@ const checkForDocker = (parsedCommands: ParsedCommands): boolean => {
     return argsContainDocker || contentContainsDocker;
   });
 };
+const argv = yargs
+  .option("withDocker", {
+    describe: "Skip the security question and execute Docker commands",
+    type: "boolean",
+    default: false,
+  })
+  .demandCommand(1, "Please provide a filename as an argument.")
+  .help().parseSync();
+
 
 // Get the filename from the first command-line argument
-const filename = process.argv[2];
+const filename = argv._[0] + "";
 
 if (!filename) {
   console.error("Please provide a filename as an argument.");
@@ -31,7 +41,7 @@ const main = async () => {
   let filenameWithoutPath = path[path.length - 1];
   path[path.length - 1] = "assets";
 
-  if (checkForDocker(parsedCommands)) {
+  if (!argv.withDocker && checkForDocker(parsedCommands)) {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout
@@ -58,7 +68,7 @@ const main = async () => {
           parsedCommands,
           filename: filenameWithoutPath.replace(".md", ""),
           assetPath: path.join("/"),
-          withDocker: false,
+          withDocker: argv.withDocker,
       });
   }
 };
