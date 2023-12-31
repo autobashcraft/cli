@@ -3,6 +3,7 @@ const { exec } = require("child_process");
 const util = require("util");
 const fs = require("fs");
 const writeFile = util.promisify(fs.writeFile);
+const removeFile = util.promisify(fs.rm);
 const appendFile = util.promisify(fs.appendFile);
 const execProm = util.promisify(exec);
 const os = require("os");
@@ -20,6 +21,7 @@ export interface ConfigType {
   basePath?: string;
 }
 
+const hostTmpPath = "/tmp/autobashcraft";
 const recordingPath = "/tmp/autobashcraft/recordings";
 const workspacePath = "/tmp/autobashcraft/workspace";
 
@@ -56,6 +58,12 @@ const log = (_obj: any, _obj_2?: any) => {
   }
 };
 
+const createHostTmpPath = async () => {
+  await execProm(
+    `docker run -v /tmp:/_tmp -u root  bash -c 'mkdir -p /_tmp/autobashcraft && chown ${uid}:${gid} /_tmp/autobashcraft -R'`
+  );
+};
+
 const cleanupRecordings = async (containerId: string) => {
   await execProm(
     `docker exec -u root ${containerId} bash -c 'rm -rf ${recordingPath}/*'`
@@ -63,33 +71,10 @@ const cleanupRecordings = async (containerId: string) => {
 };
 
 const stopContainer = async (id: string) => {
-  // Check if the container exists
-  const checkContainer = await execProm(`docker ps -a -q -f id=${id}`);
-
-  if (checkContainer.stdout.trim()) {
-    // If the container exists, stop and remove it
-    log(await execProm(`docker stop ${id} && docker rm ${id}`));
-  } else {
-    log(`Container ${id} does not exist.`);
-  }
-};
-const stopTmpContainer = async () => {
-  const containerName = "abc-tmp-container";
-
-  // Check if the container exists
-  const checkContainer = await execProm(
-    `docker ps -a -q -f name=^/${containerName}$`
-  );
-
-  if (checkContainer.stdout.trim()) {
-    // If the container exists, stop and remove it
-    log(
-      await execProm(
-        `docker stop ${checkContainer.stdout.trim()} || true && docker rm ${checkContainer.stdout.trim()} || true`
-      )
-    );
-  } else {
-    log(`Container ${containerName} does not exist.`);
+  try {
+    log(await execProm(`docker stop ${id} || true && docker rm ${id} || true`));
+  } catch (err) {
+    log(err);
   }
 };
 
@@ -98,7 +83,23 @@ const getPrivilegedOption = () => {
     return "--privileged";
   }
   return "";
-}
+};
+
+const writeFileToWorkspace = async ({
+  filename,
+  content,
+  containerId,
+}: {
+  filename: string;
+  content: string;
+  containerId: string;
+}) => {
+  filename = filename[0] === "/" ? filename : `${workspacePath}/${filename}`;
+  const tmpFilename = `${hostTmpPath}/${Math.random()}.tmp`;
+  await writeFile(tmpFilename, content);
+  await execProm(`docker cp ${tmpFilename} ${containerId}:${filename}`);
+  await removeFile(tmpFilename);
+};
 const initializeRuntime = async (options: { baseImage?: string }) => {
   let baseImage = "cioddi/autobashcraft:latest";
   if (options?.baseImage) {
@@ -110,29 +111,11 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
     dockerSockVolume = "-v /var/run/docker.sock:/var/run/docker.sock:z";
     gid = "$(getent group docker | cut -d: -f3)";
   }
-  // restore container state
-  await stopTmpContainer();
-
-  log(
-    await execProm(
-      `docker run --user ${uid}:${gid} --rm -dit --name abc-tmp-container -v ${workspacePath}:/tmp_workspace:rw ${baseImage}`
-    )
-  );
-
-  log(
-    await execProm(
-      `docker exec --user ${uid}:${gid} abc-tmp-container bash -c 'rm -rf /tmp_workspace/* && cp -r ${workspacePath}/. /tmp_workspace && ls -al /tmp_workspace'`
-    )
-  );
-
-  log(await execProm(`ls -al ${workspacePath}`));
-  await stopTmpContainer();
 
   // start the runtime container
   const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host \
   -dit --rm --user ${uid}:${gid} \
   -v ${recordingPath} \
-  -v ${workspacePath}:${workspacePath} \
   ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
@@ -145,7 +128,6 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
   await execProm(
     `docker exec -u root ${containerId} bash -c 'chown  ${uid}:${gid} /tmp/autobashcraft -R'`
   );
-  //log(cleanupWorkspace);
 
   return containerId;
 };
@@ -189,21 +171,31 @@ async function stopNewContainers(
   return newContainers;
 }
 
-const copyRecordings = async ({ assetPath, containerId }: { assetPath: string; containerId: string; }) => {
+const copyRecordings = async ({
+  assetPath,
+  containerId,
+}: {
+  assetPath: string;
+  containerId: string;
+}) => {
   await execProm(`mkdir -p ${assetPath}`);
-  await execProm(`docker exec ${containerId} test -n "$(ls -A ${recordingPath})" && echo "Not empty" || echo "Empty"`)
-  .then(async (result:any) => {
-    const output = result.stdout.trim();
-    if (output === 'Not empty') {
-      // Use docker cp to copy files from recordingPath to assetPath
-      await execProm(`docker cp ${containerId}:${recordingPath}/. ${assetPath}`);
-    } else {
-      console.log('Recording path is empty.');
-    }
-  })
-  .catch((error:any) => {
-    console.error('Error checking directory:', error.message);
-  });
+  await execProm(
+    `docker exec ${containerId} sh -c '[ "$(ls -A ${recordingPath})" ] && echo "Not empty" || echo "Empty"'`
+  )
+    .then(async (result: any) => {
+      const output = result.stdout.trim();
+      if (output === "Not empty") {
+        // Use docker cp to copy files from recordingPath to assetPath
+        await execProm(
+          `docker cp ${containerId}:${recordingPath}/. ${assetPath}`
+        );
+      } else {
+        console.log("Recording path is empty.");
+      }
+    })
+    .catch((error: any) => {
+      console.error("Error checking directory:", error.message);
+    });
 };
 
 const getBasePath = () => {
@@ -225,6 +217,7 @@ export async function executeCommands({
   assetPath: string;
   withDocker: boolean;
 }) {
+  createHostTmpPath();
   config.withDocker = withDocker;
   let containerId = await initializeRuntime({});
   await cleanupRecordings(containerId);
@@ -245,10 +238,11 @@ export async function executeCommands({
           let commands = `#!/bin/bash\n:cd ${getBasePath()}\n`;
           commands += `${command.content}` + "\n:sleep 4\n";
           log(
-            await writeFile(
-              workspacePath + "/script",
-              commands
-            )
+            await writeFileToWorkspace({
+              filename: workspacePath + "/script",
+              content: commands,
+              containerId,
+            })
           );
           const execCommandCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'chmod +x ${workspacePath}/script && cat ${workspacePath}/script'`;
           log(await execProm(execCommandCmd));
@@ -271,25 +265,40 @@ export async function executeCommands({
           );
           log(execResults.stdout);
           log(execResults.stderr);
+          // copy cast as tmp file to host
+          const castTmpFilename = `${Math.random()}.tmp`;
+          await execProm(
+            `docker cp ${containerId}:${recordingPath}/${castFilename}.cast ${hostTmpPath}/${castTmpFilename}`
+          );
           // create a gif of the recorded asciinema cast (better switch to agg)
           log(
             await execProm(
-              `docker run --user ${uid}:${gid} --rm --volumes-from ${containerId} asciinema2/asciicast2gif -s ${config.asciinema.speed} -t monokai ${recordingPath}/${castFilename}.cast ${recordingPath}/${castFilename}.gif`
+              `docker run --user ${uid}:${gid} --rm -v ${hostTmpPath}:/data:rw asciinema2/asciicast2gif \
+              -s ${config.asciinema.speed} \
+              -t monokai /data/${castTmpFilename} \
+              /data/${castTmpFilename}.gif`
             )
           );
+          // copy gif back to runtime recording path
+          await execProm(
+            `docker cp ${hostTmpPath}/${castTmpFilename}.gif ${containerId}:${recordingPath}/${castFilename}.gif`
+          );
+          await execProm("rm " + hostTmpPath + "/" + castTmpFilename + "*");
+
           // remove the asciinema .cast file (maybe we should use it)
           log(
             await execProm(
-              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast'`
+              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast && ls -al ${recordingPath}'`
             )
           );
           break;
         case "create":
           log(
-            await writeFile(
-              workspacePath + "/" + command.args.path,
-              command.content
-            )
+            await writeFileToWorkspace({
+              filename: workspacePath + "/" + command.args.path,
+              content: command.content || "",
+              containerId,
+            })
           );
           console.log("File operation successful");
           break;
@@ -322,12 +331,17 @@ export async function executeCommands({
           log(
             await execProm(
               `docker exec -u root ${containerId} bash -c '\
-              node ${browserScript} ${ command.args.url } ${recordingPath}/${castFilename} &&\
+              node ${browserScript} ${
+                command.args.url
+              } ${recordingPath}/${castFilename} &&\
               chown ${uid}:${gid} ${recordingPath}/${castFilename} &&\
               chmod 666 ${recordingPath}/${castFilename} &&\
               ffmpeg -i ${recordingPath}/${castFilename} \
               -vf "fps=10,scale=960:540:flags=lanczos" \
-              -c:v gif -f gif ${recordingPath}/${castFilename.replace( ".mp4", "")}.gif'`
+              -c:v gif -f gif ${recordingPath}/${castFilename.replace(
+                ".mp4",
+                ""
+              )}.gif'`
             )
           );
 
@@ -342,7 +356,6 @@ export async function executeCommands({
           console.log("Config updated", config);
           break;
         case "snapshot":
-          await stopBackgroundProcesses({ containerId });
           console.log(
             "save runtime state to docker container as: ",
             command.args.name
@@ -354,30 +367,6 @@ export async function executeCommands({
                 `docker commit ${containerId} ${command.args.name}`
               )
             );
-
-            // start a new container with that image
-            await stopTmpContainer();
-            log(
-              await execProm(
-                `docker run --name abc-tmp-container ${command.args.name}`
-              )
-            );
-
-            // copy contents of workspacePath to the containers workspace path (without the mounted volume so it will persist on docker commit)
-            log(
-              await execProm(
-                `docker cp ${workspacePath}/. abc-tmp-container:${workspacePath}`
-              )
-            );
-
-            // save the image again including workspace state
-            log(
-              await execProm(
-                `docker commit abc-tmp-container ${command.args.name}`
-              )
-            );
-            // stop tmp container
-            log(await execProm(`docker stop abc-tmp-container`));
           } else {
             console.log("No 'name' prop passed to the snapshot command");
           }
@@ -405,7 +394,7 @@ export async function executeCommands({
     }
 
     // Stop and remove any new containers that were created
-    await stopNewContainers(initialContainers);
+    //await stopNewContainers(initialContainers);
     await stopBackgroundProcesses({ containerId });
 
     return {};
@@ -414,7 +403,7 @@ export async function executeCommands({
     throw error;
   } finally {
     if (containerId) {
-      await execProm(`docker stop ${containerId}`);
+      await execProm(`docker stop ${containerId} || true`);
     }
 
     console.log("");
