@@ -337,7 +337,7 @@ export async function executeCommands({
               chown ${uid}:${gid} ${recordingPath}/${castFilename} &&\
               chmod 666 ${recordingPath}/${castFilename} &&\
               ffmpeg -i ${recordingPath}/${castFilename} \
-              -vf "fps=10,scale=960:540:flags=lanczos" \
+              -vf "fps=10,scale=1024:768:flags=lanczos" \
               -c:v gif -f gif ${recordingPath}/${castFilename.replace(
                 ".mp4",
                 ""
