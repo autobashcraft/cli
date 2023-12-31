@@ -1,7 +1,7 @@
 
 <!--@abc: exec() -->
 ```bash
-docker run -d -p 8080:80 httpd
+docker run -p 8080:80 httpd
 ```
 
 <img src="assets/docker_persistence_0.gif" />
