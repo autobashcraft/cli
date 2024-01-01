@@ -15,10 +15,12 @@ export interface ConfigType {
     rows: number;
     typingPause: number;
     promptPause: number;
+    timeout: number;
   };
   withDocker: boolean;
   debug: boolean;
   basePath?: string;
+  spawnWaitTime: number;
 }
 
 const hostTmpPath = "/tmp/autobashcraft";
@@ -33,10 +35,12 @@ const defaultConfig: ConfigType = {
     rows: 15,
     typingPause: 0.01,
     promptPause: 1,
+    timeout: 30,
   },
   withDocker: false,
-  debug: false,
+  debug: true,
   basePath: workspacePath,
+  spawnWaitTime: 20,
 };
 let config: ConfigType = { ...defaultConfig };
 
@@ -94,8 +98,14 @@ const writeFileToWorkspace = async ({
   content: string;
   containerId: string;
 }) => {
+  let tmpPath = filename.split("/");
+  const filepath = tmpPath.slice(0, tmpPath.length - 1).join("/");
   filename = filename[0] === "/" ? filename : `${workspacePath}/${filename}`;
   const tmpFilename = `${hostTmpPath}/${Math.random()}.tmp`;
+  console.log("Writing file to workspace:", (`${filepath}`))
+  await execProm(
+    `docker exec -u root ${containerId} bash -c 'mkdir -p ${filepath} && chown runuser:${gid} ${workspacePath} -R'`
+  );
   await writeFile(tmpFilename, content);
   await execProm(`docker cp ${tmpFilename} ${containerId}:${filename}`);
   await removeFile(tmpFilename);
@@ -114,19 +124,14 @@ const initializeRuntime = async (options: { baseImage?: string }) => {
 
   // start the runtime container
   const containerStartCmd = `docker run ${dockerSockVolume} --group-add docker --group-add sudo --network host \
-  -dit --rm --user ${uid}:${gid} \
+  -dit --rm --user runuser:${gid} \
   -v ${recordingPath} \
   ${baseImage}`;
   const startResult = await execProm(containerStartCmd);
   containerId = startResult.stdout.trim();
-  log(
-    await execProm(
-      `docker exec -u root ${containerId} bash -c 'ls -al ${workspacePath}'`
-    )
-  );
 
   await execProm(
-    `docker exec -u root ${containerId} bash -c 'chown  ${uid}:${gid} /tmp/autobashcraft -R'`
+    `docker exec -u root ${containerId} bash -c 'mkdir -p ${workspacePath} && mkdir -p ${recordingPath} && chown  runuser:${gid} /tmp/autobashcraft -R'`
   );
 
   return containerId;
@@ -150,7 +155,7 @@ async function stopBackgroundProcesses({
   for (const pid of backgroundProcesses) {
     console.log(`Stopping background process: ${pid}`);
     await execProm(
-      `docker exec --user ${uid}:${gid} ${containerId} bash -c 'kill ${pid}'`
+      `docker exec --user runuser:${gid} ${containerId} bash -c 'kill ${pid}'`
     );
   }
 }
@@ -205,6 +210,10 @@ const getBasePath = () => {
   return workspacePath;
 };
 
+function sleep(time: number) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 // Function to execute parsedCommands inside a new Docker container
 export async function executeCommands({
   parsedCommands,
@@ -244,7 +253,7 @@ export async function executeCommands({
               containerId,
             })
           );
-          const execCommandCmd = `docker exec --user ${uid}:${gid} ${containerId} bash -c 'chmod +x ${workspacePath}/script && cat ${workspacePath}/script'`;
+          const execCommandCmd = `docker exec --user root ${containerId} bash -c 'chmod +x ${workspacePath}/script && cat ${workspacePath}/script'`;
           log(await execProm(execCommandCmd));
           console.log(
             "script /app/script created with contents:",
@@ -254,14 +263,16 @@ export async function executeCommands({
           // execute the script using a custom version of asciinema-rec_script
           castFilename = filename + "_" + commandIndex;
           const execResults = await execProm(
-            `docker exec -t --user ${uid}:${gid} ${getPrivilegedOption()} ${containerId} bash -c '\
+            `docker exec -t --user runuser:${gid} ${getPrivilegedOption()} ${containerId} bash -c '\
             stty rows ${config.asciinema.rows} cols ${config.asciinema.cols} &&\
             TYPING_PAUSE=${config.asciinema.typingPause} \
             PROMPT_PAUSE=${config.asciinema.promptPause} \
+            TIMEOUT=${config.asciinema.timeout} \
             asciinema-rec_script ${workspacePath}/script &&\
             ls -al ${workspacePath} &&\
             cp ${workspacePath}/script.cast ${recordingPath}/${castFilename}.cast &&\
-            rm ${workspacePath}/script.cast'`
+            rm ${workspacePath}/script.cast'`,
+            { maxBuffer: 1024 * 1024 * 10 }
           );
           log(execResults.stdout);
           log(execResults.stderr);
@@ -273,7 +284,7 @@ export async function executeCommands({
           // create a gif of the recorded asciinema cast (better switch to agg)
           log(
             await execProm(
-              `docker run --user ${uid}:${gid} --rm -v ${hostTmpPath}:/data:rw asciinema2/asciicast2gif \
+              `docker run -u ${uid}:${gid} --rm -v ${hostTmpPath}:/data:rw asciinema2/asciicast2gif \
               -s ${config.asciinema.speed} \
               -t monokai /data/${castTmpFilename} \
               /data/${castTmpFilename}.gif`
@@ -283,14 +294,16 @@ export async function executeCommands({
           await execProm(
             `docker cp ${hostTmpPath}/${castTmpFilename}.gif ${containerId}:${recordingPath}/${castFilename}.gif`
           );
-          await execProm("rm " + hostTmpPath + "/" + castTmpFilename + "*");
+          //await execProm("rm " + hostTmpPath + "/" + castTmpFilename + "*");
 
           // remove the asciinema .cast file (maybe we should use it)
-          log(
-            await execProm(
-              `docker exec --user ${uid}:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast && ls -al ${recordingPath}'`
-            )
-          );
+          if (!config.debug) {
+            log(
+              await execProm(
+                `docker exec --user runuser:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast && ls -al ${recordingPath}'`
+              )
+            );
+          }
           break;
         case "create":
           log(
@@ -312,11 +325,15 @@ export async function executeCommands({
             }
 
             let res = await execProm(
-              `docker exec --workdir ${getBasePath()} --user ${uid}:${gid}  ${containerId} bash -c '${service_command} echo $!'`
+              `docker exec --workdir ${getBasePath()} --user runuser:${gid} ${containerId} bash -c '&>/dev/null ${service_command} echo $!'`
             );
             pid = res.stdout.split("\n")[0].trim();
             backgroundProcesses.push(pid);
             console.log(`Process spawned with PID: ${pid}`);
+            console.log(
+              `Wait ${config.spawnWaitTime} seconds for the process to start`
+            );
+            await sleep(config.spawnWaitTime * 1000);
             log(res);
           }
           console.log("File operation successful");
@@ -334,7 +351,7 @@ export async function executeCommands({
               node ${browserScript} ${
                 command.args.url
               } ${recordingPath}/${castFilename} &&\
-              chown ${uid}:${gid} ${recordingPath}/${castFilename} &&\
+              chown runuser:${gid} ${recordingPath}/${castFilename} &&\
               chmod 666 ${recordingPath}/${castFilename} &&\
               ffmpeg -i ${recordingPath}/${castFilename} \
               -vf "fps=10,scale=1024:768:flags=lanczos" \
@@ -394,8 +411,8 @@ export async function executeCommands({
     }
 
     // Stop and remove any new containers that were created
-    //await stopNewContainers(initialContainers);
     await stopBackgroundProcesses({ containerId });
+    await stopNewContainers(initialContainers);
 
     return {};
   } catch (error) {

@@ -1,6 +1,8 @@
 #FROM node:latest
 FROM node:21.5.0-bookworm
 
+ENV SHELL /bin/bash
+
 RUN apt-get update && apt-get install -y \
     asciinema \
     python3-pip \
@@ -16,9 +18,16 @@ RUN usermod -aG docker runuser
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> \
 /etc/sudoers
 
+
 RUN npm install -g npm@10.2.5
 USER runuser
-WORKDIR /tmp/autobashcraft/workspace
+RUN curl https://pyenv.run | bash
+RUN curl -sSL https://install.python-poetry.org | python3 -
+#WORKDIR /tmp/autobashcraft/workspace
+
+ENV PATH "/home/runuser/.pyenv/bin:/home/runuser/.local/share/pypoetry/venv/bin/:$PATH"
+RUN echo 'export PATH="/home/runuser/.pyenv/bin:/home/runuser/.local/share/pypoetry/venv/bin/:$PATH"' >> ~/.bashrc
+RUN echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
 
 COPY --chown=runuser:runuser scripts/* /scripts/
 RUN cd /scripts/ && PUPPETEER_SKIP_DOWNLOAD=true npm i

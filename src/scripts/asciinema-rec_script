@@ -80,7 +80,12 @@ build_augmented_script() { local script="$1"
       source*)
         # we'll use `source` to define multiline commands
         printf "%s" "${PROMPT}"
-        type_out "$(eval "${1//source/$CAT}")"
+        type_out "$(echo "$1" | $CAT)"
+        eval "$1"
+      ;;
+      echo*)
+        printf "%s" "${PROMPT}"
+        type_out "$(echo "$1" | $CAT)"
         eval "$1"
       ;;
       cd*)
@@ -163,7 +168,7 @@ LINE
 }
 
   # Now let the meta-programming begin ...
-  echo "#!/usr/bin/env bash"
+  echo "#!/bin/bash"
 
   echo "export CAT='${CAT:-$(syntax_highlighter)}'"
   echo "export MARKDOWN='${MARKDOWN:-$(markdown_highlighter)}'"
