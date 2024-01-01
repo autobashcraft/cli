@@ -38,7 +38,7 @@ const defaultConfig: ConfigType = {
     timeout: 30,
   },
   withDocker: false,
-  debug: true,
+  debug: false,
   basePath: workspacePath,
   spawnWaitTime: 20,
 };
