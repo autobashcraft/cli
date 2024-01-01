@@ -16,6 +16,7 @@ export interface ConfigType {
     typingPause: number;
     promptPause: number;
     timeout: number;
+    keepAsciinemaFile: boolean;
   };
   withDocker: boolean;
   debug: boolean;
@@ -36,6 +37,7 @@ const defaultConfig: ConfigType = {
     typingPause: 0.01,
     promptPause: 1,
     timeout: 30,
+    keepAsciinemaFile: true,
   },
   withDocker: false,
   debug: false,
@@ -297,7 +299,7 @@ export async function executeCommands({
           //await execProm("rm " + hostTmpPath + "/" + castTmpFilename + "*");
 
           // remove the asciinema .cast file (maybe we should use it)
-          if (!config.debug) {
+          if (!config.asciinema.keepAsciinemaFile) {
             log(
               await execProm(
                 `docker exec --user runuser:${gid} ${containerId} bash -c 'rm ${recordingPath}/${castFilename}.cast && ls -al ${recordingPath}'`
