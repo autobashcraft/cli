@@ -1,7 +1,10 @@
 
 <!--@abc: init({"baseImage":"private-gpt"}) -->
 <!--@abc: config({"basePath":"privateGPT","asciinema":{"timeout":100}}) -->
+## Ingesting data into the private GPT service
 
+Create a json file with some sample data about employees.
+(file: privateGPT/docs/employees.json)
 <!--@abc: create({"path":"privateGPT/docs/employees.json"}) -->
 ```json
 {
@@ -100,21 +103,27 @@
 }
 ```
 
+Run `make ingest docs` to ingest the employees.json file into the GPT service. The --watch flag will cause the service to restart when more files are added to the docs directory or data is changed.
 <!--@abc: exec() -->
 ```bash
 make ingest docs -- --watch
 ```
+<img src="./assets/ingest_3.gif"/>
 
+Start the private GPT service.
 <!--@abc: exec() -->
 ```bash
 poetry run python -m private_gpt
 ```
+<img src="./assets/ingest_4.gif"/>
 
 <!--@abc: snapshot({"name":"private-gpt-ingested"}) -->
 <!--@abc: config({"spawnWaitTime":60}) -->
 <!--@abc: spawn({"command":"poetry run python -m private_gpt"}) -->
 
+Test if we get a response at the default localhost port 8001.
 <!--@abc: exec() -->
 ```bash
 curl http://127.0.0.1:8001/
 ```
+<img src="./assets/ingest_8.gif"/>

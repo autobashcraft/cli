@@ -1,3 +1,5 @@
+# The content of this file is copied from https://github.com/imartinez/privateGPT/blob/main/fern/docs/pages/installation/installation.mdx and modified to fit the needs of this example.
+
 ## Installation and Settings
 
 ### Base requirements to run PrivateGPT
@@ -9,6 +11,7 @@
   git clone https://github.com/imartinez/privateGPT
   cd privateGPT
 ```
+<img src="./assets/privategpt_0.gif"/>
 
 * Install Python `3.11` (*if you do not have it already*). Ideally through a python version manager like `pyenv`.
   Earlier python versions are not supported.
@@ -21,6 +24,7 @@
 pyenv install 3.11
 pyenv local 3.11
 ```
+<img src="./assets/privategpt_2.gif"/>
 
 * Install [Poetry](https://python-poetry.org/docs/#installing-with-the-official-installer) for dependency management:
 
@@ -38,6 +42,7 @@ Install the dependencies:
 ```bash
 poetry install --with ui
 ```
+<img src="./assets/privategpt_3.gif"/>
 
 Verify everything is working by running `make run` (or `poetry run python -m private_gpt`) and navigate to
 http://localhost:8001. You should see a [Gradio UI](https://gradio.app/) **configured with a mock LLM** that will
@@ -60,6 +65,7 @@ Install extra dependencies for local execution:
 ```bash
 poetry install --with local
 ```
+<img src="./assets/privategpt_4.gif"/>
 
 For PrivateGPT to run fully locally GPU acceleration is required
 (CPU execution is possible, but very slow), however,
@@ -79,22 +85,10 @@ the embedding and the LLM model and place them in the correct location (under `m
 ```bash
 poetry run python scripts/setup
 ```
-
+<img src="./assets/privategpt_5.gif"/>
 
 <!--@abc: snapshot({"name":"private-gpt"}) -->
-<!--@abc: config({"basePath":"privateGPT","asciinema":{"timeout":3000}}) -->
 
-<!--@abc: exec() -->
-```bash
-make run
-```
-
-<!--@abc: spawn({"command":"make run"}) -->
-
-<!--@abc: exec() -->
-```bash
-curl http://localhost:8001/
-```
 If you are ok with CPU execution, you can skip the rest of this section.
 
 As stated before, llama.cpp is required and in
