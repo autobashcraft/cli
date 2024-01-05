@@ -1,0 +1,7 @@
+node_modules/
+recordings/
+dist/
+test/
+assets/
+docs/
+examples/
