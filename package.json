@@ -3,6 +3,13 @@
   "version": "1.0.25",
   "description": "",
   "main": "dist/index.js",
+  "bugs": {
+    "url": "https://github.com/autobashcraft/cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/autobashcraft/cli.git"
+  },
   "bin": {
     "autobashcraft": "./dist/index.js"
   },
