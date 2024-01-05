@@ -17,7 +17,8 @@
     "test": "jest",
     "build": "tsc",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts examples/test/testfile.md",
-    "build-docker": "docker build -t cioddi/autobashcraft src/."
+    "build-docker": "docker build -t cioddi/autobashcraft src/.",
+    "doc": "typedoc --options typedoc.json src"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +33,7 @@
     "nodemon": "^3.0.2",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "typedoc": "^0.25.6",
     "typescript": "^5.3.3"
   }
 }

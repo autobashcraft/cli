@@ -10,6 +10,7 @@ import { Command, ParsedCommands } from "./commands";
 const checkForDocker = (parsedCommands: ParsedCommands): boolean => {
   return parsedCommands.commands.some((command:Command) => {
     const argsContainDocker = JSON.stringify(command.args).includes("docker");
+    //@ts-ignore
     const contentContainsDocker = (command.content || "").includes("docker");
     return argsContainDocker || contentContainsDocker;
   });

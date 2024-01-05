@@ -1,4 +1,4 @@
-import { ParsedCommands } from "./commands";
+import { ParsedCommands , ConfigType } from "./commands";
 const { exec } = require("child_process");
 const util = require("util");
 const fs = require("fs");
@@ -8,21 +8,6 @@ const appendFile = util.promisify(fs.appendFile);
 const execProm = util.promisify(exec);
 const os = require("os");
 
-export interface ConfigType {
-  asciinema: {
-    speed: number;
-    cols: number;
-    rows: number;
-    typingPause: number;
-    promptPause: number;
-    timeout: number;
-    keepAsciinemaFile: boolean;
-  };
-  withDocker: boolean;
-  debug: boolean;
-  basePath?: string;
-  spawnWaitTime: number;
-}
 
 const hostTmpPath = "/tmp/autobashcraft";
 const recordingPath = "/tmp/autobashcraft/recordings";
@@ -405,7 +390,8 @@ export async function executeCommands({
           );
           break;
         default:
-          console.log(`Unknown command type: ${command.type}`);
+          //@ts-ignore
+          console.log(`Unknown command type: ${command.type as string}`);
           log(command);
       }
       commandIndex++;

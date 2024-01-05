@@ -1,0 +1,8 @@
+{
+    "out": "./docs_test",
+    "exclude": "",
+    "excludeExternals": true,
+    "excludeNotDocumented": false,
+    "excludePrivate": false,
+    "excludeInternal":false
+  }

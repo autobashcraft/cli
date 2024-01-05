@@ -1,4 +1,5 @@
 node_modules/
 recordings/
 dist/
-test/
+
+docs_test/

@@ -36,6 +36,7 @@ export const parseMarkdown = (markdown: string): ParsedCommands => {
         if (argsMatch) {
           const args = argsMatch[1] ? JSON.parse(`${argsMatch[1]}`) : {};
           commands.push({
+            //@ts-ignore
             type: "" + currentCommandType,
             content: token.text,
             args,
