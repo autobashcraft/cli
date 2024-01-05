@@ -18,7 +18,7 @@
     "build": "tsc",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts examples/test/testfile.md",
     "build-docker": "docker build -t cioddi/autobashcraft src/.",
-    "doc": "typedoc --options typedoc.json src"
+    "doc": "typedoc --out docs_test --readme none src/commands.ts"
   },
   "keywords": [],
   "author": "",
